@@ -1,5 +1,5 @@
 #include <iostream>
-#include "include/ShoppingList.h"
+#include "ShoppingList.h"
 
 int main() {
     ShoppingList myList;
@@ -9,7 +9,7 @@ int main() {
     myList.addItem("Feijão", 1);
     cout << "Itens após adicionar:\n";
     for (const auto &item : myList.items) {
-        cout << item.name << " - " << item.quantity << " - " << (item.acquired ? "Acquired" : "Nt Acquired") << "\n";
+        cout << item.name << " - " << item.quantity << " - " << (item.acquired ? "Acquired" : "Not Acquired") << "\n";
     }
 
  

@@ -9,8 +9,7 @@ using namespace std;
 struct ShoppingItem {
     string name;
     int quantity;
-    bool acquired = false; 
-    
+    bool acquired = false;
 };
 
 class ShoppingList {
