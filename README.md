@@ -1,10 +1,10 @@
-# SDLE Second Assignment
+# SDLE Assignment
 
-SDLE Second Assignment of group T&lt;m&gt;&lt;n&gt;G&lt;p&gt;&lt;q&gt;.
+SDLE Assignment of group T07G14.
 
 Group members:
 
-1. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-2. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-3. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-4. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
+1. Bruno Machado (up201907715@up.pt)
+2. Daniel Gago (up202108791@up.pt)
+3. João Padrão (up202108766@up.pt)
+4. José Veiga (up202108753@up.pt)
