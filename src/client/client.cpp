@@ -1,18 +1,24 @@
+#include <zmq.hpp>
 #include <iostream>
-#include "ShoppingList.h"
+#include "../common/messages.hpp"
 
 int main() {
-    ShoppingList myList;
-    myList.id = "test_id";
+    zmq::context_t context{1};
+    zmq::socket_t socket{context, zmq::socket_type::req};
+    socket.connect("tcp://localhost:5555");
 
-    myList.addItem("Arroz", 2);
-    myList.addItem("Feijão", 1);
-    cout << "Itens após adicionar:\n";
-    for (const auto &item : myList.items) {
-        cout << item.name << " - " << item.quantity << " - " << (item.acquired ? "Acquired" : "Not Acquired") << "\n";
-    }
+    Message msg;
+    msg.operation = "create_list";
+    msg.data = {{"name", "Groceries"}};
 
- 
+    std::string serialized_msg = msg.to_string();
+    socket.send(zmq::buffer(serialized_msg), zmq::send_flags::none);
+
+    zmq::message_t reply;
+    socket.recv(reply, zmq::recv_flags::none);
+
+    std::cout << "Resposta do servidor: " << reply.to_string() << std::endl;
 
     return 0;
 }
+
