@@ -8,14 +8,22 @@ set(CMAKE_CXX_STANDARD 14)
 add_subdirectory(external/zmqpp)
 
 # Include directories
-include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(external/zmqpp/src)
 
+# Add common sources
+set(COMMON_SOURCES
+    src/common/PNCounter.cpp
+    src/common/ShoppingItem.cpp
+    src/common/ShoppingList.cpp
+)
+
 # Add executables
-add_executable(client src/client/client.cpp)
-add_executable(server src/server/server.cpp)
+add_executable(client src/client/client.cpp ${COMMON_SOURCES})
+add_executable(server src/server/server.cpp ${COMMON_SOURCES})
+add_executable(main src/main.cpp ${COMMON_SOURCES})
 
 # Link libraries
 target_link_libraries(client PRIVATE zmqpp)
 target_link_libraries(server PRIVATE zmqpp)
-
+target_link_libraries(main PRIVATE zmqpp)
