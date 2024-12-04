@@ -1,6 +1,5 @@
-// main.cpp
 #include <iostream>
-#include "PNCounter.h"
+#include "../include/PNCounter.h"
 
 int main() {
     // Create two PN-Counters

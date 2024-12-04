@@ -1,38 +1,21 @@
 cmake_minimum_required(VERSION 3.30)
+
 project(g14)
 
-# Set the C++ standard to C++17 (or higher if needed)
 set(CMAKE_CXX_STANDARD 14)
 
-# Find ZeroMQ package
-find_package(ZeroMQ REQUIRED)
+# Add external libraries (zmqpp in your case)
+add_subdirectory(external/zmqpp)
 
-# Include directories for common headers
+# Include directories
 include_directories(include)
-include_directories(common)
+include_directories(external/zmqpp/src)
 
-# Add the common source files that both client and server will use
-add_library(common
-        common/PNCounter.cpp
-        common/ShoppingItem.cpp
-        common/ShoppingList.cpp
-        common/messages.hpp
-)
+# Add executables
+add_executable(client src/client/client.cpp)
+add_executable(server src/server/server.cpp)
 
-# Create the client executable
-add_executable(client
-        src/client/client.cpp
-)
+# Link libraries
+target_link_libraries(client PRIVATE zmqpp)
+target_link_libraries(server PRIVATE zmqpp)
 
-# Link the client executable with ZeroMQ and the common library
-target_link_libraries(client common ZeroMQ::ZeroMQ)
-
-# Create the server executable
-add_executable(server
-        src/server/server.cpp
-)
-
-# Link the server executable with ZeroMQ and the common library
-target_link_libraries(server common ZeroMQ::ZeroMQ)
-
-# Optionally, add more configurations or tests if needed
