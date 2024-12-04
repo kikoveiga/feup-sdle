@@ -2,13 +2,13 @@
 #include <iostream>
 #include "../common/messages.hpp"
 
-int main() {
+int client() {
     zmq::context_t context{1};
     zmq::socket_t socket{context, zmq::socket_type::req};
     socket.connect("tcp://localhost:5555");
 
     Message msg;
-    msg.operation = "create_list";
+    msg.operation = Operation::CREATE_LIST;
     msg.data = {{"name", "Groceries"}};
 
     std::string serialized_msg = msg.to_string();

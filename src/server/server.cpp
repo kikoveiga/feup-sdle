@@ -15,7 +15,7 @@ int main() {
         Message msg = Message::from_string(request_str);
 
         std::string response;
-        if (msg.operation == "create_list") {
+        if (msg.operation == Operation::CREATE_LIST) {
             std::cout << "Cria lista: " << msg.data["name"] << std::endl;
             response = R"({"status": "success", "message": "Lista criada"})";
         } else {
