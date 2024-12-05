@@ -5,6 +5,16 @@
 // Constructor to initialize counters
 PNCounter::PNCounter() : positive(0), negative(0) {}
 
+PNCounter::PNCounter(PNCounter&& other) noexcept : positive(other.positive), negative(other.negative) {}
+
+PNCounter& PNCounter::operator=(PNCounter&& other) noexcept {
+    if (this != &other) {
+        positive = other.positive;
+        negative = other.negative;
+    }
+    return *this;
+}
+
 // Increment the positive counter by 1
 void PNCounter::increment() {
     std::lock_guard<std::mutex> lock(mtx);  // Thread-safe increment

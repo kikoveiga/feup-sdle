@@ -1,26 +1,20 @@
 #ifndef SHOPPINGLIST_H
 #define SHOPPINGLIST_H
 
-#include <string>
-#include <vector>
+#pragma once
+#include <ShoppingItem.h>
+#include <unordered_map>
 
 using namespace std;  
 
-struct ShoppingItem {
-    string name;
-    int quantity;
-    bool acquired = false;
-};
-
 class ShoppingList {
-public:
-    string id; 
-    vector<ShoppingItem> items;
+    unordered_map<string, ShoppingItem> items;
 
-    void addItem(const string &name, int quantity);
-    void removeItem(const string &name);
-    void markItemAsAcquired(const string &name);
-    void updateItemQuantity(const string &name, int newQuantity);
+public:
+    void add_item(const string& name);
+    void mark_item_acquired(const string& name);
+    void merge(ShoppingList& other);
+    void print() const;
 };
 
 #endif // SHOPPINGLIST_H

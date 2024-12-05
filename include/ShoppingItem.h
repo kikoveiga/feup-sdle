@@ -1,25 +1,34 @@
 #ifndef SHOPPINGITEM_H
 #define SHOPPINGITEM_H
 
+#pragma once
+#include "PNCounter.h"
 #include <string>
-#include <vector>
+#include <iostream>
 
 using namespace std;
 
-class ShoppingItem
-{
-public:
-    void setName(const string &name);
-    void setQuantity(int quantity);
-    void setAcquired(bool acquired);
-    string getName() const;
-    int getQuantity() const;
-    bool isAcquired() const;
-
-private:
+class ShoppingItem {
     string name;
-    int quantity;
-    bool acquired = false;
+    PNCounter quantity;
+
+public:
+
+    ShoppingItem();
+    explicit ShoppingItem(string name);
+    ShoppingItem(ShoppingItem&& other) noexcept;
+    ShoppingItem& operator=(ShoppingItem&& other) noexcept;
+
+    void setName(const string& name);
+    string getName() const;
+
+    void increment();
+    void decrement();
+    int getQuantity() const;
+
+    void merge(const ShoppingItem& other);
+
+    void print() const;
 };
 
 #endif // SHOPPINGITEM_H

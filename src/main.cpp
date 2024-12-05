@@ -1,33 +1,25 @@
-#include <iostream>
-#include "PNCounter.h"
+#include "ShoppingList.h"
 
 int main() {
-    // Create two PN-Counters
-    PNCounter counter1;
-    PNCounter counter2;
+    ShoppingList list1, list2;
 
-    // Simulate operations on counter1
-    counter1.increment();  // counter1 = 1
-    counter1.increment();  // counter1 = 2
-    counter1.decrement();  // counter1 = 1
+    // Add items to list1
+    list1.add_item("Apples");
+    list1.add_item("Apples");
+    list1.add_item("Oranges");
 
-    // Simulate operations on counter2
-    counter2.increment();  // counter2 = 1
-    counter2.decrement();  // counter2 = 0
-    counter2.decrement();  // counter2 = -1
+    // Mark some items as acquired
+    list1.mark_item_acquired("Apples");
 
-    // Print individual counter values
-    std::cout << "Counter 1 value: " << counter1.get_value() << std::endl;
-    std::cout << "Counter 2 value: " << counter2.get_value() << std::endl;
+    // Add items to list2
+    list2.add_item("Apples");
+    list2.add_item("Bananas");
 
-    // Merge counter1 and counter2
-    counter1.merge(counter2);
+    // Merge the two lists
+    list1.merge(list2);
 
-    // Print after merging
-    std::cout << "After merging counter2 into counter1:" << std::endl;
-    counter1.print();
-
-    std::cout << "Final counter1 value: " << counter1.get_value() << std::endl;
+    // Print the merged list
+    list1.print();
 
     return 0;
 }

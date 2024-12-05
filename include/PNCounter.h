@@ -7,14 +7,21 @@
 
 #include <mutex>
 
+using namespace std;
+
 class PNCounter {
 
     int positive;
     int negative;
-    std::mutex mtx;
+    mutable mutex mtx;
 
 public:
     PNCounter();
+    PNCounter(PNCounter&& other) noexcept;
+    PNCounter& operator=(PNCounter&& other) noexcept;
+
+    PNCounter(const PNCounter&) = delete;
+
     void increment();
     void decrement();
     int get_value() const;

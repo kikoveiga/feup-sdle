@@ -1,33 +1,31 @@
 #include "ShoppingList.h"
-#include <algorithm>
 
+void ShoppingList::add_item(const string& name) {
+    if (items.find(name) == items.end()) {
+        items[name] = ShoppingItem(name);
+    }
 
-
-void ShoppingList::addItem(const string &name, int quantity) {
-    ShoppingItem item{name, quantity};
-    items.push_back(item);
+    items[name].increment();
 }
 
-void ShoppingList::removeItem(const string &name) {
-    items.erase(remove_if(items.begin(), items.end(),
-               [&name](const ShoppingItem& item) { return item.name == name; }),
-               items.end());
+void ShoppingList::mark_item_acquired(const string& name) {
+    if (items.find(name) != items.end()) {
+        items[name].decrement();
+    }
 }
 
-void ShoppingList::markItemAsAcquired(const string &name) {
-    for (auto &item : items) {
-        if (item.name == name) {
-            item.acquired = true;
-            break;
+void ShoppingList::merge(ShoppingList& other) {
+    for (auto& [name, item] : other.items) {
+        if (items.find(name) == items.end()) {
+            items[name] = move(item);
+        } else {
+            items[name].merge(item);
         }
     }
 }
 
-void ShoppingList::updateItemQuantity(const string &name, int newQuantity) {
-    for (auto &item : items) {
-        if (item.name == name) {
-            item.quantity = newQuantity;
-            break;
-        }
+void ShoppingList::print() const {
+    for (const auto& [name, item] : items) {
+        item.print();
     }
 }
