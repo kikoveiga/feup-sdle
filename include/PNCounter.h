@@ -20,7 +20,7 @@ public:
     PNCounter(PNCounter&& other) noexcept;
     PNCounter& operator=(PNCounter&& other) noexcept;
 
-    PNCounter(const PNCounter&) = delete;
+    PNCounter& operator=(const PNCounter& other);
 
     void increment();
     void decrement();

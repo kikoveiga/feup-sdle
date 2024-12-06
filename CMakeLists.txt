@@ -16,11 +16,12 @@ set(COMMON_SOURCES
     src/common/PNCounter.cpp
     src/common/ShoppingItem.cpp
     src/common/ShoppingList.cpp
+    src/common/Message.cpp
 )
 
 # Add executables
-add_executable(client src/client/client.cpp ${COMMON_SOURCES})
-add_executable(server src/server/server.cpp ${COMMON_SOURCES})
+add_executable(client src/client/Client.cpp ${COMMON_SOURCES})
+add_executable(server src/server/Server.cpp ${COMMON_SOURCES})
 add_executable(main src/main.cpp ${COMMON_SOURCES})
 
 # Link libraries

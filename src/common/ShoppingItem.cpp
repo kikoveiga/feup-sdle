@@ -1,5 +1,7 @@
 #include "ShoppingItem.h"
 
+#include <iostream>
+
 ShoppingItem::ShoppingItem() = default;
 
 ShoppingItem::ShoppingItem(string name) : name(move(name)) {}
@@ -10,6 +12,14 @@ ShoppingItem& ShoppingItem::operator=(ShoppingItem&& other) noexcept {
     if (this != &other) {
         name = move(other.name);
         quantity = move(other.quantity);
+    }
+    return *this;
+}
+
+ShoppingItem& ShoppingItem::operator=(const ShoppingItem& other) noexcept {
+    if (this != &other) {
+        name = other.name;
+        quantity = other.quantity;
     }
     return *this;
 }
@@ -42,4 +52,20 @@ void ShoppingItem::merge(const ShoppingItem &other) {
 
 void ShoppingItem::print() const {
     cout << "Item: " << name << ", Remaining: " << getQuantity() << endl;
+}
+
+void to_json(json& j, const ShoppingItem& item) {
+    j = json{
+        {"name", item.getName()},
+        {"quantity", item.getQuantity()}
+    };
+}
+
+void from_json(const json& j, ShoppingItem& item) {
+    item.name = j.at("name").get<string>();
+    item.quantity = PNCounter();
+    const int quantity = j.at("quantity").get<int>();
+    for (int i = 0; i < quantity; i++) {
+        item.increment();
+    }
 }
