@@ -3,9 +3,17 @@
 #include <iostream>
 #include <Message.h>
 
+int Client::client_id_counter = 0;
+
 Client::Client() : context(1), dealer_socket(context, zmq::socket_type::dealer) {
-    dealer_socket.set(zmq::sockopt::routing_id, "Client1");
+    client_id = "Client" + to_string(++client_id_counter);
+    cout << "Client running..." << endl;
+    dealer_socket.set(zmq::sockopt::routing_id, client_id);
     dealer_socket.connect("tcp://localhost:5555");
+}
+
+string Client::get_client_id() const {
+    return client_id;
 }
 
 void Client::send_request(const Operation operation, const string &list_id, const json &data) {
@@ -16,7 +24,7 @@ void Client::send_request(const Operation operation, const string &list_id, cons
 
     string request_str = msg.to_string();
     cout << "Sending request: " << request_str << endl;
-    
+
     dealer_socket.send(zmq::buffer(request_str), zmq::send_flags::none);
 
     zmq::message_t reply;

@@ -14,14 +14,14 @@ void Server::run() {
         zmq::message_t client_message;
 
         router_socket.recv(identity, zmq::recv_flags::none);
-        string identity_str = identity.to_string();
-        cout << "Received message from client: " << identity_str << endl;
-        router_socket.recv(client_message, zmq::recv_flags::none);
+        string client_id(static_cast<char*>(identity.data()), identity.size());
+        cout << "Received Identity: " << client_id << endl;
 
-        cout << "Received message from client" << endl;
-        cout << "Message: " << client_message.to_string() << endl;
-        Message msg = Message::from_string(client_message.to_string());
-        cout << "Received message: " << msg.to_string() << endl;
+        router_socket.recv(client_message, zmq::recv_flags::none);
+        string received_str(static_cast<char*>(client_message.data()), client_message.size());
+        cout << "Received message: " << received_str << endl;
+
+        Message msg = Message::from_string(received_str);
 
         string response = "OK";
         router_socket.send(client_message, zmq::send_flags::none);
