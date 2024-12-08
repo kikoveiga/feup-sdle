@@ -6,20 +6,22 @@ ShoppingItem::ShoppingItem() = default;
 
 ShoppingItem::ShoppingItem(string name) : name(move(name)) {}
 
-ShoppingItem::ShoppingItem(ShoppingItem&& other) noexcept : name(move(other.name)), quantity(move(other.quantity)) {}
+ShoppingItem::ShoppingItem(const ShoppingItem& other) : name(other.name), quantity(other.quantity) {}
 
-ShoppingItem& ShoppingItem::operator=(ShoppingItem&& other) noexcept {
-    if (this != &other) {
-        name = move(other.name);
-        quantity = move(other.quantity);
-    }
-    return *this;
-}
+ShoppingItem::ShoppingItem(ShoppingItem&& other) noexcept : name(move(other.name)), quantity(move(other.quantity)) {}
 
 ShoppingItem& ShoppingItem::operator=(const ShoppingItem& other) noexcept {
     if (this != &other) {
         name = other.name;
         quantity = other.quantity;
+    }
+    return *this;
+}
+
+ShoppingItem& ShoppingItem::operator=(ShoppingItem&& other) noexcept {
+    if (this != &other) {
+        name = move(other.name);
+        quantity = move(other.quantity);
     }
     return *this;
 }
@@ -54,18 +56,23 @@ void ShoppingItem::print() const {
     cout << "Item: " << name << ", Remaining: " << getQuantity() << endl;
 }
 
-void to_json(json& j, const ShoppingItem& item) {
-    j = json{
-        {"name", item.getName()},
-        {"quantity", item.getQuantity()}
+json ShoppingItem::to_json() const {
+    return json{
+        {"name", name},
+        {"quantity", getQuantity()}
     };
 }
 
-void from_json(const json& j, ShoppingItem& item) {
+ShoppingItem ShoppingItem::from_json(const json& j) {
+
+    ShoppingItem item;
     item.name = j.at("name").get<string>();
     item.quantity = PNCounter();
     const int quantity = j.at("quantity").get<int>();
     for (int i = 0; i < quantity; i++) {
         item.increment();
     }
+
+    return item;
 }
+

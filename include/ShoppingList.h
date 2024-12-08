@@ -6,11 +6,6 @@
 
 using namespace std;
 
-class ShoppingList;
-
-void to_json(json& j, const ShoppingList& list);
-void from_json(const json& j, ShoppingList& list);
-
 class ShoppingList {
     string list_id;
     unordered_map<string, ShoppingItem> items;
@@ -28,6 +23,10 @@ public:
     const unordered_map<string, ShoppingItem>& get_items() const;
     void merge(ShoppingList& other);
     void print() const;
+
+    json to_json() const;
+    static ShoppingList from_json(const json& j);
+
 };
 
 #endif // SHOPPINGLIST_H
