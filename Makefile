@@ -15,10 +15,10 @@ SERVER = $(BIN_DIR)/server
 
 all: $(CLIENT) $(SERVER)
 
-$(CLIENT): $(SRC_DIR)/client/client.cpp $(COMMON_SRC)
+$(CLIENT): $(SRC_DIR)/client/Client.cpp $(COMMON_SRC)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(SERVER): $(SRC_DIR)/server/server.cpp $(COMMON_SRC)
+$(SERVER): $(SRC_DIR)/server/Server.cpp $(COMMON_SRC)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 .PHONY: clean
