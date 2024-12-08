@@ -1,20 +1,40 @@
 #include "Message.h"
 
-#include <iostream>
+void to_json(json& j, const Operation& op) {
+    switch (op) {
+        case Operation::CREATE_LIST: j = "CREATE_LIST"; break;
+        case Operation::DELETE_LIST: j = "DELETE_LIST"; break;
+        case Operation::ADD_ITEM: j = "ADD_ITEM"; break;
+        case Operation::REMOVE_ITEM: j = "REMOVE_ITEM"; break;
+        case Operation::GET_LIST: j = "GET_LIST"; break;
+        case Operation::GET_ALL_LISTS: j = "GET_ALL_LISTS"; break;
+        case Operation::UPDATE_LIST: j = "UPDATE_LIST"; break;
+        default: j = "UNKNOWN_OPERATION"; break;
+    }
+}
+
+void from_json(const json& j, Operation& op) {
+    const std::string op_str = j.get<std::string>();
+    if (op_str == "CREATE_LIST") op = Operation::CREATE_LIST;
+    else if (op_str == "DELETE_LIST") op = Operation::DELETE_LIST;
+    else if (op_str == "ADD_ITEM") op = Operation::ADD_ITEM;
+    else if (op_str == "REMOVE_ITEM") op = Operation::REMOVE_ITEM;
+    else if (op_str == "GET_LIST") op = Operation::GET_LIST;
+    else if (op_str == "GET_ALL_LISTS") op = Operation::GET_ALL_LISTS;
+    else if (op_str == "UPDATE_LIST") op = Operation::UPDATE_LIST;
+    else throw std::invalid_argument("Invalid operation type: " + op_str);
+}
 
 Message::Message() : operation(Operation::GET_ALL_LISTS), data(json::object()) {}
 
 string Message::to_string() const {
-    cout << "Here!";
     json j;
     to_json(j, *this);
     return j.dump();
 }
 
 Message Message::from_string(const string& json_str) {
-    cout << "Here!";
     const json j = json::parse(json_str);
-    cout << "Here!";
     Message msg;
 
     from_json(j, msg);

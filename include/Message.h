@@ -17,18 +17,8 @@ enum class Operation {
     GET_ALL_LISTS
 };
 
-inline void to_json(json& j, const Operation& op) {
-    switch (op) {
-        case Operation::CREATE_LIST: j = "CREATE_LIST"; break;
-        case Operation::DELETE_LIST: j = "DELETE_LIST"; break;
-        case Operation::ADD_ITEM: j = "ADD_ITEM"; break;
-        case Operation::REMOVE_ITEM: j = "REMOVE_ITEM"; break;
-        case Operation::GET_LIST: j = "GET_LIST"; break;
-        case Operation::GET_ALL_LISTS: j = "GET_ALL_LISTS"; break;
-        case Operation::UPDATE_LIST: j = "UPDATE_LIST"; break;
-        default: j = "UNKNOWN_OPERATION"; break;
-    }
-}
+void to_json(json& j, const Operation& op);
+void from_json(const json& j, Operation& op);
 
 class Message {
 
