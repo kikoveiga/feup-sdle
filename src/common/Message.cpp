@@ -4,11 +4,10 @@ void to_json(json& j, const Operation& op) {
     switch (op) {
         case Operation::CREATE_LIST: j = "CREATE_LIST"; break;
         case Operation::DELETE_LIST: j = "DELETE_LIST"; break;
-        case Operation::ADD_ITEM: j = "ADD_ITEM"; break;
-        case Operation::REMOVE_ITEM: j = "REMOVE_ITEM"; break;
+        case Operation::ADD_ITEM_TO_LIST: j = "ADD_ITEM"; break;
+        case Operation::REMOVE_ITEM_FROM_LIST: j = "REMOVE_ITEM"; break;
         case Operation::GET_LIST: j = "GET_LIST"; break;
         case Operation::GET_ALL_LISTS: j = "GET_ALL_LISTS"; break;
-        case Operation::UPDATE_LIST: j = "UPDATE_LIST"; break;
         default: j = "UNKNOWN_OPERATION"; break;
     }
 }
@@ -17,11 +16,10 @@ void from_json(const json& j, Operation& op) {
     const std::string op_str = j.get<std::string>();
     if (op_str == "CREATE_LIST") op = Operation::CREATE_LIST;
     else if (op_str == "DELETE_LIST") op = Operation::DELETE_LIST;
-    else if (op_str == "ADD_ITEM") op = Operation::ADD_ITEM;
-    else if (op_str == "REMOVE_ITEM") op = Operation::REMOVE_ITEM;
+    else if (op_str == "ADD_ITEM") op = Operation::ADD_ITEM_TO_LIST;
+    else if (op_str == "REMOVE_ITEM") op = Operation::REMOVE_ITEM_FROM_LIST;
     else if (op_str == "GET_LIST") op = Operation::GET_LIST;
     else if (op_str == "GET_ALL_LISTS") op = Operation::GET_ALL_LISTS;
-    else if (op_str == "UPDATE_LIST") op = Operation::UPDATE_LIST;
     else throw std::invalid_argument("Invalid operation type: " + op_str);
 }
 

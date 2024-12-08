@@ -52,18 +52,26 @@ void ShoppingList::print() const {
     }
 }
 
-void to_json(json& j, const ShoppingList& list) {
-    j = json {
-        {"list_id", list.get_list_id()},
-        {"items", list.get_items()}
+json ShoppingList::to_json() const {
+    json items_json = json::array();
+
+    for (const auto& [name, item] : items) {
+        items_json.push_back(item.to_json());
+    }
+
+    return json {
+        {"list_id", list_id},
+        {"items", items_json}
     };
 }
 
-void from_json(const json& j, ShoppingList& list) {
-    list = ShoppingList(j.at("list_id").get<string>());
+ShoppingList ShoppingList::from_json(const json& j) {
+    auto list = ShoppingList(j.at("list_id").get<string>());
 
     for (const auto& item_json : j.at("items")) {
-        auto item = item_json.get<ShoppingItem>();
+        ShoppingItem item = ShoppingItem::from_json(item_json);
         list.add_item(item);
     }
+
+    return list;
 }

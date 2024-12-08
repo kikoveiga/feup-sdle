@@ -16,11 +16,13 @@ class PNCounter {
     mutable mutex mtx;
 
 public:
-    PNCounter();
-    PNCounter(PNCounter&& other) noexcept;
-    PNCounter& operator=(PNCounter&& other) noexcept;
 
-    PNCounter& operator=(const PNCounter& other);
+    PNCounter();
+    PNCounter(const PNCounter& other); // Copy constructor
+    PNCounter(PNCounter&& other) noexcept; // Move constructor
+
+    PNCounter& operator=(const PNCounter& other); // Copy assignment operator
+    PNCounter& operator=(PNCounter&& other) noexcept; // Move assignment operator
 
     void increment();
     void decrement();
