@@ -10,9 +10,8 @@ using namespace std;
 enum class Operation {
     CREATE_LIST,
     DELETE_LIST,
-    ADD_ITEM,
-    REMOVE_ITEM,
-    UPDATE_LIST,
+    ADD_ITEM_TO_LIST,
+    REMOVE_ITEM_FROM_LIST,
     GET_LIST,
     GET_ALL_LISTS
 };

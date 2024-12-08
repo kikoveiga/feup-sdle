@@ -14,14 +14,21 @@ class ShoppingItem {
 
 public:
 
+    // Constructors
     ShoppingItem();
     explicit ShoppingItem(string name);
+
+    // Copy constructor
+    ShoppingItem(const ShoppingItem& other);
+
+    // Move constructor
     ShoppingItem(ShoppingItem&& other) noexcept;
+
+    // Copy assignment operator
+    ShoppingItem& operator=(const ShoppingItem& other) noexcept;
 
     // Move assignment operator
     ShoppingItem& operator=(ShoppingItem&& other) noexcept;
-    // Regular assignment operator
-    ShoppingItem& operator=(const ShoppingItem& other) noexcept;
 
     void setName(const string& name);
     string getName() const;
@@ -34,8 +41,8 @@ public:
 
     void print() const;
 
-    friend void to_json(json& j, const ShoppingItem& item);
-    friend void from_json(const json& j, ShoppingItem& item);
+    json to_json() const;
+    static ShoppingItem from_json(const json& j);
 };
 
 #endif // SHOPPINGITEM_H

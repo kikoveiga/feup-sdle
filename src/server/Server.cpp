@@ -1,10 +1,28 @@
 #include "Server.h"
 
 #include <iostream>
+#include <bsoncxx/json.hpp>
 
 Server::Server() : context(1), router_socket(context, zmq::socket_type::router), publisher_socket(context, zmq::socket_type::pub) {
     router_socket.bind("tcp://*:5555");
     publisher_socket.bind("tcp://*:5556");
+}
+
+void Server::loadFromCentralDatabase() {
+    const auto db = centralDatabase["server_db"];
+    auto collection = db["shoppingLists"];
+    auto cursor = collection.find({});
+
+    for (const auto& doc : cursor) {
+        auto json_str = bsoncxx::to_json(doc);
+        auto json_obj = json::parse(json_str);
+
+        ShoppingList list = ShoppingList::from_json(json_obj);
+
+        inMemoryShoppingLists[list.get_list_id()] = list;
+    }
+
+    cout << "Loaded " << inMemoryShoppingLists.size() << " lists from central database" << endl;
 }
 
 void Server::run() {
@@ -21,23 +39,105 @@ void Server::run() {
         string received_str(static_cast<char*>(client_message.data()), client_message.size());
         cout << "Received message: " << received_str << endl;
 
-        Message msg = Message::from_string(received_str);
+        try {
+            Message msg = Message::from_string(received_str);
+            handleRequest(client_id, msg);
 
-        string response = "OK";
-        router_socket.send(client_message, zmq::send_flags::none);
+            string response = "OK";
+            router_socket.send(identity, zmq::send_flags::sndmore);
+            router_socket.send(client_message, zmq::send_flags::none);
+        } catch (const exception& e) {
+            cout << "Error processing message: " << e.what() << endl;
+
+            string response = "ERROR";
+            router_socket.send(identity, zmq::send_flags::sndmore);
+            router_socket.send(zmq::buffer(response), zmq::send_flags::none);
+        }
     }
 }
 
-void Server::addItemToList(const string& list_id, const json &data) {
-    const ShoppingItem item(data.at("name"));
-    shoppingLists[list_id].add_item(item);
+void Server::handleRequest(const string& client_id, const Message& msg) {
+    switch (msg.operation) {
+
+        case Operation::CREATE_LIST:
+            if (inMemoryShoppingLists.find(msg.list_id) != inMemoryShoppingLists.end()) throw invalid_argument("List already exists: " + msg.list_id);
+            inMemoryShoppingLists[msg.list_id] = ShoppingList(msg.list_id);
+            publishUpdate(msg.list_id);
+            cout << "Created list: " << msg.list_id << endl;
+            break;
+
+        case Operation::DELETE_LIST:
+            if (inMemoryShoppingLists.erase(msg.list_id) == 0) throw invalid_argument("List not found: " + msg.list_id);
+            cout << "Deleted list: " << msg.list_id << endl;
+            break;
+
+        case Operation::ADD_ITEM_TO_LIST:
+            addItemToList(msg.list_id, msg.data);
+            publishUpdate(msg.list_id);
+            cout << "Added item to list: " << msg.list_id << endl;
+            break;
+
+        case Operation::REMOVE_ITEM_FROM_LIST:
+            markItemAcquired(msg.list_id, msg.data);
+            publishUpdate(msg.list_id);
+            cout << "Marked item acquired in list: " << msg.list_id << endl;
+            break;
+
+        case Operation::GET_LIST:
+            if (inMemoryShoppingLists.find(msg.list_id) == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + msg.list_id);
+
+            {
+                Message response;
+                response.operation = Operation::GET_LIST;
+                response.list_id = msg.list_id;
+                response.data = inMemoryShoppingLists[msg.list_id].to_json();
+                router_socket.send(zmq::buffer(response.to_string()), zmq::send_flags::none);
+            }
+            cout << "Retrieved list: " << msg.list_id << endl;
+            break;
+
+        case Operation::GET_ALL_LISTS: {
+            Message response;
+            response.operation = Operation::GET_ALL_LISTS;
+
+            json all_lists = json::array();
+            for (const auto& [list_id, list] : inMemoryShoppingLists) {
+                all_lists.push_back(list.to_json());
+            }
+            response.data = all_lists;
+            router_socket.send(zmq::buffer(response.to_string()), zmq::send_flags::none);
+
+            cout << "Retrieved all lists" << endl;
+            break;
+        }
+
+        default:
+            throw invalid_argument("Invalid operation");
+
+    }
 }
+
+
+void Server::addItemToList(const string& list_id, const json &data) {
+    if (inMemoryShoppingLists.find(list_id) == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + list_id);
+
+    const ShoppingItem item = ShoppingItem::from_json(data);
+    inMemoryShoppingLists[list_id].add_item(item);
+}
+
+void Server::markItemAcquired(const string &list_id, const json &data) {
+    const auto list = inMemoryShoppingLists.find(list_id);
+    if (list == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + list_id);
+
+    list->second.mark_item_acquired(data);
+}
+
 
 void Server::publishUpdate(const string& list_id) {
     Message msg;
-    msg.operation = Operation::UPDATE_LIST;
+    msg.operation = Operation::GET_LIST;
     msg.list_id = list_id;
-    msg.data = shoppingLists[list_id];
+    msg.data = inMemoryShoppingLists[list_id].to_json();
     publisher_socket.send(zmq::buffer(msg.to_string()), zmq::send_flags::none);
 }
 
