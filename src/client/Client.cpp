@@ -9,7 +9,7 @@ int Client::client_id_counter = 0;
 
 Client::Client() : localDatabase(mongocxx::uri{}), context(1), dealer_socket(context, zmq::socket_type::dealer) {
     client_id = "Client" + to_string(++client_id_counter);
-    cout << client_id << " connected to a local database and running..." << endl;
+    cout << client_id << " running..." << endl;
     dealer_socket.set(zmq::sockopt::routing_id, client_id);
     dealer_socket.connect("tcp://localhost:5555");
 
@@ -35,7 +35,7 @@ void Client::syncWithServer() {
 }
 
 
-void Client::send_request(const Operation operation, const string &list_id, const json &data) {
+void Client::send_request(const Operation operation, const string& list_id, const json& data) {
     Message msg;
     msg.operation = operation;
     msg.list_id = list_id;
@@ -69,10 +69,10 @@ void Client::loadFromLocalDatabase() {
         localShoppingLists[list.get_list_id()] = list;
     }
 
-    cout << "Loaded shopping lists from local database." << endl;
+    cout << "Loaded " << localShoppingLists.size() << " lists from local database." << endl;
 }
 
-void Client::saveToLocalDatabase(const ShoppingList &list) {
+void Client::saveToLocalDatabase(const ShoppingList& list) {
     const auto db = localDatabase["client_db"];
     auto collection = db["shoppingLists"];
 
@@ -81,16 +81,23 @@ void Client::saveToLocalDatabase(const ShoppingList &list) {
     for (const auto& [list_id, list] : localShoppingLists) {
         json json_obj = list.to_json();
     }
-
-
 }
 
 
 int main() {
 
     mongocxx::instance instance{};
-    
+
     Client client;
-    client.send_request(Operation::ADD_ITEM_TO_LIST, "list1", {{"name", "Milk"}});
+
+    const json data = {
+        {"name", "Milk"},
+        {"quantity", 2}
+    };
+
+    // client.send_request(Operation::CREATE_LIST, "list1", {});
+    client.send_request(Operation::ADD_ITEM_TO_LIST, "list1", data);
+
+
     return 0;
 }

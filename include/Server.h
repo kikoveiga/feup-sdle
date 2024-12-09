@@ -21,7 +21,8 @@ class Server {
 
     void initializeDatabase();
     void loadFromCentralDatabase();
-    void saveToCentralDatabase(const string& list_id);
+    void saveListToCentralDatabase(const string& list_id);
+    void deleteListFromCentralDatabase(const string& list_id) const;
     void shardData();
 
     void handleRequest(const string& client_id, const Message& msg);
