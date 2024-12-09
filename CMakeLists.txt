@@ -25,12 +25,21 @@ set(COMMON_SOURCES
     src/common/Message.cpp
 )
 
+set(SERVER_SOURCES
+    src/server/Broker.cpp
+    src/server/Worker.cpp
+)
+
 # Add executables
 add_executable(client src/client/Client.cpp ${COMMON_SOURCES})
 add_executable(server src/server/Server.cpp ${COMMON_SOURCES})
+add_executable(main_broker src/server/main_broker.cpp ${COMMON_SOURCES} ${SERVER_SOURCES})
+add_executable(main_worker src/server/main_worker.cpp ${COMMON_SOURCES} ${SERVER_SOURCES})
 add_executable(main src/main.cpp ${COMMON_SOURCES})
 
 # Link libraries
 target_link_libraries(client PRIVATE zmqpp mongocxx bsoncxx)
 target_link_libraries(server PRIVATE zmqpp mongocxx bsoncxx)
+target_link_libraries(main_broker PRIVATE zmqpp mongoxx bsoncxx)
+target_link_libraries(main_worker PRIVATE zmqpp mongoxx bsoncxx)
 target_link_libraries(main PRIVATE zmqpp mongocxx bsoncxx)

@@ -35,7 +35,7 @@ void Client::syncWithServer() {
 }
 
 
-void Client::send_request(const Operation operation, const string &list_id, const json& data) {
+void Client::send_request(const Operation operation, const string& list_id, const json& data) {
     Message msg;
     msg.operation = operation;
     msg.list_id = list_id;
@@ -72,7 +72,7 @@ void Client::loadFromLocalDatabase() {
     cout << "Loaded " << localShoppingLists.size() << " lists from local database." << endl;
 }
 
-void Client::saveToLocalDatabase(const ShoppingList &list) {
+void Client::saveToLocalDatabase(const ShoppingList& list) {
     const auto db = localDatabase["client_db"];
     auto collection = db["shoppingLists"];
 
@@ -81,8 +81,6 @@ void Client::saveToLocalDatabase(const ShoppingList &list) {
     for (const auto& [list_id, list] : localShoppingLists) {
         json json_obj = list.to_json();
     }
-
-
 }
 
 
