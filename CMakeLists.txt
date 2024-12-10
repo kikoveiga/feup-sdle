@@ -28,6 +28,7 @@ set(COMMON_SOURCES
 set(SERVER_SOURCES
     src/server/Broker.cpp
     src/server/Worker.cpp
+    src/server/Database.cpp
 )
 
 # Add executables
@@ -40,6 +41,6 @@ add_executable(main src/main.cpp ${COMMON_SOURCES})
 # Link libraries
 target_link_libraries(client PRIVATE zmqpp mongocxx bsoncxx)
 target_link_libraries(server PRIVATE zmqpp mongocxx bsoncxx)
-target_link_libraries(main_broker PRIVATE zmqpp mongoxx bsoncxx)
-target_link_libraries(main_worker PRIVATE zmqpp mongoxx bsoncxx)
+target_link_libraries(main_broker PRIVATE zmqpp mongocxx bsoncxx)
+target_link_libraries(main_worker PRIVATE zmqpp mongocxx bsoncxx)
 target_link_libraries(main PRIVATE zmqpp mongocxx bsoncxx)
