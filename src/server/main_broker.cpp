@@ -1,3 +1,9 @@
-//
-// Created by kikoveiga on 09-12-2024.
-//
+#include "Broker.h"
+#include <mongocxx/instance.hpp>
+
+int main() {
+    mongocxx::instance instance{};
+    Broker broker;
+    broker.run();
+    return 0;
+}
