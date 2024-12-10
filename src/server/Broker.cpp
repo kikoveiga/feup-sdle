@@ -1,6 +1,6 @@
 #include "Broker.h"
-#include <iostream>
-#include <zmq.hpp>
+
+#include "common_includes.h"
 #define HEARTBEAT_LIVENESS 3
 #define HEARTBEAT_INTERVAL 1000
 
@@ -25,7 +25,7 @@ void Broker::worker_append(const string &identity) {
 }
 
 void Broker::worker_delete(const string &identity) {
-    for (auto it = workers.begin(); it < workers.end(); it++) {
+    for (auto it = workers.begin(); it < workers.end(); ++it) {
         if (it->identity == identity) {
             workers.erase(it);
             break;
@@ -71,19 +71,20 @@ void Broker::run() {
             { frontend, 0, ZMQ_POLLIN, 0 }
         };
 
-        int rc = (!workers.empty()) ? zmq::poll(items, 2, HEARTBEAT_INTERVAL) : zmq::poll(items, 1, HEARTBEAT_INTERVAL);
+        if (workers.size()) zmq::poll(items, 2, chrono::milliseconds(HEARTBEAT_INTERVAL));
+        else zmq::poll(items, 1, chrono::milliseconds(HEARTBEAT_INTERVAL));
 
         // Backend (workers)
         if (items[0].revents & ZMQ_POLLIN) {
             zmsg msg(backend);
-            std::string identity(msg.unwrap());
+            string identity(msg.unwrap());
 
             if (msg.parts() == 1) {
-                std::string command = msg.popstr();
-                if (command == "READY") {
+                string address = msg.address();
+                if (address == "READY") {
                     worker_delete(identity);
                     worker_append(identity);
-                } else if (command == "HEARTBEAT") {
+                } else if (address == "HEARTBEAT") {
                     worker_refresh(identity);
                 } else {
                     std::cerr << "E: invalid message from " << identity << std::endl;
@@ -101,7 +102,7 @@ void Broker::run() {
             zmsg msg(frontend);
             if (!workers.empty()) {
                 std::string worker_id = worker_dequeue();
-                msg.wrap(worker_id.c_str(), NULL);
+                msg.wrap(worker_id.c_str(), nullptr);
                 msg.send(backend);
             } else {
                 std::cerr << "E: no workers available, dropping request." << std::endl;
@@ -110,9 +111,9 @@ void Broker::run() {
 
         // Heartbeats
         if (s_clock() > heartbeat_at) {
-            for (auto &w : workers) {
+            for (auto& w : workers) {
                 zmsg heartbeat("HEARTBEAT");
-                heartbeat.wrap(w.identity.c_str(), NULL);
+                heartbeat.wrap(w.identity.c_str(), nullptr);
                 heartbeat.send(backend);
             }
             heartbeat_at = s_clock() + HEARTBEAT_INTERVAL;

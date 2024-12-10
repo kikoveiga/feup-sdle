@@ -1,6 +1,7 @@
 #ifndef WORKER_H
 #define WORKER_H
 
+#include "Database.h"
 #include "Message.h"
 #include "ShoppingList.h"
 
@@ -9,9 +10,14 @@ class Worker {
 
     string backend_url;
     int worker_id;
+    Database& db;
 
-    static mutex g_mutex;
-    static map<string, ShoppingList> inMemoryShoppingLists;
+    mutex g_mutex;
+    map<string, ShoppingList> inMemoryShoppingLists;
 
+public:
+    Worker(const string& backend_url, int worker_id, Database& db);
+    void run() const;
 };
+
 #endif //WORKER_H
