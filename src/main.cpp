@@ -1,25 +1,32 @@
+#include <iostream>
 #include "ShoppingList.h"
+#include "ShoppingItem.h"
+#include "nlohmann/json.hpp"
+
+using namespace std;
+using json = nlohmann::json;
 
 int main() {
-    ShoppingList list1, list2;
+    ShoppingList list1,list2;
 
-    // Add items to list1
-    list1.add_item("Apples");
-    list1.add_item("Apples");
-    list1.add_item("Oranges");
+    // With the ccounter now we can know who changed the item 
+    list1.add_item("Bananas", "client_1");
+    list1.add_item("Apples", "client_2");
+    list1.add_item("Apples", "client_1");
 
-    // Mark some items as acquired
-    list1.mark_item_acquired("Apples");
+    list2.add_item("Apples", "client_1");
+    list2.add_item("Oranges", "client_2");
 
-    // Add items to list2
-    list2.add_item("Apples");
-    list2.add_item("Bananas");
+    cout << "List 1 before merge:" << endl;
+    list1.print();
+    cout << "List 2 before mergee:" << endl;
+    list2.print();
 
-    // Merge the two lists
     list1.merge(list2);
 
-    // Print the merged list
+    cout << "List 1 after merge" << endl;
     list1.print();
+
 
     return 0;
 }

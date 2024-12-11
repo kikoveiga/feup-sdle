@@ -1,30 +1,38 @@
 #include "ShoppingList.h"
-
-#include <utility>
+#include <iostream>
 
 ShoppingList::ShoppingList() = default;
 
-ShoppingList::ShoppingList(string list_id) : list_id(std::move(list_id)) {}
+ShoppingList::ShoppingList(string list_id) : list_id(move(list_id)) {}
 
-void ShoppingList::add_item(const string& name) {
+void ShoppingList::add_item(const string& name, const string& client_id) {
     if (items.find(name) == items.end()) {
         items[name] = ShoppingItem(name);
     }
-
-    items[name].increment();
+    items[name].increment(client_id);
 }
 
-void ShoppingList::add_item(const ShoppingItem& item) {
+void ShoppingList::add_item(const ShoppingItem& item, const string& client_id) {
     if (items.find(item.getName()) == items.end()) {
         items[item.getName()] = item;
     } else {
-        items[item.getName()].increment();
+        items[item.getName()].merge(item);
+    }
+    items[item.getName()].increment(client_id);
+}
+
+void ShoppingList::remove_item(const string& name, const string& client_id) {
+    if (items.find(name) != items.end()) {
+        items[name].decrement(client_id);
+        if (items[name].getQuantity() == 0) {
+            items.erase(name);
+        }
     }
 }
 
-void ShoppingList::mark_item_acquired(const string& name) {
+void ShoppingList::mark_item_acquired(const string& name, const string& client_id) {
     if (items.find(name) != items.end()) {
-        items[name].decrement();
+        items[name].decrement(client_id);
     }
 }
 
@@ -70,7 +78,12 @@ ShoppingList ShoppingList::from_json(const json& j) {
 
     for (const auto& item_json : j.at("items")) {
         ShoppingItem item = ShoppingItem::from_json(item_json);
-        list.add_item(item);
+        const string& item_name = item.getName();
+        int quantity = item.getQuantity();
+
+        for (int i = 0; i < quantity; ++i) {
+            list.add_item(item_name, "default_client_id"); 
+        }
     }
 
     return list;
