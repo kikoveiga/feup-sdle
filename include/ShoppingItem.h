@@ -4,33 +4,36 @@
 #include "CCounter.h"
 #include "nlohmann/json.hpp"
 #include <string>
-#include <unordered_map>
 
 using json = nlohmann::json;
 using namespace std;
 
 class ShoppingItem {
-private:
     string name;
-    unordered_map<string, CCounter<int>> client_counters; 
+    CCounter quantity;
 
 public:
+    // Constructors
     ShoppingItem();
     explicit ShoppingItem(string name);
 
+    // Copy constructor
     ShoppingItem(const ShoppingItem& other);
 
+    // Move constructor
     ShoppingItem(ShoppingItem&& other) noexcept;
 
+    // Copy assignment operator
     ShoppingItem& operator=(const ShoppingItem& other) noexcept;
 
+    // Move assignment operator
     ShoppingItem& operator=(ShoppingItem&& other) noexcept;
 
     void setName(const string& name);
     string getName() const;
 
-    void increment(const string& client_id);
-    void decrement(const string& client_id);
+    void increment();
+    void decrement();
     int getQuantity() const;
 
     void merge(const ShoppingItem& other);

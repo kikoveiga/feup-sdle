@@ -1,28 +1,29 @@
 #ifndef CCOUNTER_H
 #define CCOUNTER_H
 
+#include <map>
+#include <mutex>
 #include <string>
 
-template <typename T>
+using namespace std;
+
 class CCounter {
 private:
-    std::string id;  
-    T value;        
+    map<string, int> counts;
+    mutable mutex mtx;
 
 public:
-    CCounter();  
+    CCounter();
+    CCounter(const CCounter& other); // Copy constructor
+    CCounter(CCounter&& other) noexcept; // Move constructor
+    CCounter& operator=(const CCounter& other); // Copy assignment
+    CCounter& operator=(CCounter&& other) noexcept; // Move assignment
 
-    explicit CCounter(std::string id);
-
-    void inc(T delta);
-
-    void dec();
-
-    T read() const;
-
-    void join(const CCounter<T>& other);
-
-    void reset();
+    void increment(const string& actor);
+    void decrement(const string& actor);
+    int get_value() const;
+    void merge(const CCounter& other);
+    void print() const;
 };
 
-#endif  // CCOUNTER_H
+#endif // CCOUNTER_H

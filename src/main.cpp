@@ -7,26 +7,27 @@ using namespace std;
 using json = nlohmann::json;
 
 int main() {
-    ShoppingList list1,list2;
+    ShoppingList list1, list2;
 
-    // With the ccounter now we can know who changed the item 
-    list1.add_item("Bananas", "client_1");
-    list1.add_item("Apples", "client_2");
-    list1.add_item("Apples", "client_1");
+    list1.add_item("Apples");
+    list1.add_item("Apples");
+    list1.add_item("Oranges");
 
-    list2.add_item("Apples", "client_1");
-    list2.add_item("Oranges", "client_2");
+    list1.mark_item_acquired("Apples");
 
-    cout << "List 1 before merge:" << endl;
-    list1.print();
-    cout << "List 2 before mergee:" << endl;
-    list2.print();
+    list2.add_item("Apples");
+    list2.add_item("Bananas");
 
     list1.merge(list2);
 
-    cout << "List 1 after merge" << endl;
     list1.print();
 
+    json list_json = list1.to_json();
+    cout << "Serialized List1: " << list_json.dump(4) << endl;
+
+    ShoppingList new_list = ShoppingList::from_json(list_json);
+    cout << "Deserialized List: " << endl;
+    new_list.print();
 
     return 0;
 }

@@ -1,38 +1,29 @@
 #include "ShoppingList.h"
-#include <iostream>
+#include <utility>
 
 ShoppingList::ShoppingList() = default;
 
-ShoppingList::ShoppingList(string list_id) : list_id(move(list_id)) {}
+ShoppingList::ShoppingList(string list_id) : list_id(std::move(list_id)) {}
 
-void ShoppingList::add_item(const string& name, const string& client_id) {
+void ShoppingList::add_item(const string& name) {
     if (items.find(name) == items.end()) {
         items[name] = ShoppingItem(name);
     }
-    items[name].increment(client_id);
+
+    items[name].increment();
 }
 
-void ShoppingList::add_item(const ShoppingItem& item, const string& client_id) {
+void ShoppingList::add_item(const ShoppingItem& item) {
     if (items.find(item.getName()) == items.end()) {
         items[item.getName()] = item;
     } else {
-        items[item.getName()].merge(item);
-    }
-    items[item.getName()].increment(client_id);
-}
-
-void ShoppingList::remove_item(const string& name, const string& client_id) {
-    if (items.find(name) != items.end()) {
-        items[name].decrement(client_id);
-        if (items[name].getQuantity() == 0) {
-            items.erase(name);
-        }
+        items[item.getName()].increment();
     }
 }
 
-void ShoppingList::mark_item_acquired(const string& name, const string& client_id) {
+void ShoppingList::mark_item_acquired(const string& name) {
     if (items.find(name) != items.end()) {
-        items[name].decrement(client_id);
+        items[name].decrement();
     }
 }
 
@@ -67,7 +58,7 @@ json ShoppingList::to_json() const {
         items_json.push_back(item.to_json());
     }
 
-    return json {
+    return json{
         {"list_id", list_id},
         {"items", items_json}
     };
@@ -78,12 +69,7 @@ ShoppingList ShoppingList::from_json(const json& j) {
 
     for (const auto& item_json : j.at("items")) {
         ShoppingItem item = ShoppingItem::from_json(item_json);
-        const string& item_name = item.getName();
-        int quantity = item.getQuantity();
-
-        for (int i = 0; i < quantity; ++i) {
-            list.add_item(item_name, "default_client_id"); 
-        }
+        list.add_item(item);
     }
 
     return list;

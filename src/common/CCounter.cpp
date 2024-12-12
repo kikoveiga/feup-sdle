@@ -1,34 +1,65 @@
 #include "CCounter.h"
+#include <iostream>
 
-template <typename T>
-CCounter<T>::CCounter() : value(0) {}
+CCounter::CCounter() {}
 
-template <typename T>
-CCounter<T>::CCounter(std::string id) : id(std::move(id)), value(0) {}
-
-template <typename T>
-void CCounter<T>::inc(T delta) {
-    value += delta;
+CCounter::CCounter(const CCounter& other) {
+    lock_guard lock(other.mtx);
+    counts = other.counts;
 }
 
-template <typename T>
-void CCounter<T>::dec() {
-    --value;
+CCounter::CCounter(CCounter&& other) noexcept {
+    lock_guard lock(other.mtx);
+    counts = move(other.counts);
 }
 
-template <typename T>
-T CCounter<T>::read() const {
-    return value;
+CCounter& CCounter::operator=(const CCounter& other) {
+    if (this != &other) {
+        lock_guard lock1(mtx);
+        lock_guard lock2(other.mtx);
+        counts = other.counts;
+    }
+    return *this;
 }
 
-template <typename T>
-void CCounter<T>::join(const CCounter<T>& other) {
-    value = std::max(value, other.value);
+CCounter& CCounter::operator=(CCounter&& other) noexcept {
+    if (this != &other) {
+        lock_guard lock1(mtx);
+        lock_guard lock2(other.mtx);
+        counts = move(other.counts);
+    }
+    return *this;
 }
 
-template <typename T>
-void CCounter<T>::reset() {
-    value = 0;
+void CCounter::increment(const string& actor) {
+    lock_guard lock(mtx);
+    counts[actor]++;
 }
 
-template class CCounter<int>;
+void CCounter::decrement(const string& actor) {
+    lock_guard lock(mtx);
+    counts[actor]--;
+}
+
+int CCounter::get_value() const {
+    lock_guard lock(mtx);
+    int total = 0;
+    for (const auto& entry : counts) {
+        total += entry.second;
+    }
+    return total;
+}
+
+void CCounter::merge(const CCounter& other) {
+    lock_guard lock(mtx);
+    for (const auto& entry : other.counts) {
+        counts[entry.first] += entry.second;
+    }
+}
+
+void CCounter::print() const {
+    lock_guard lock(mtx);
+    for (const auto& entry : counts) {
+        cout << "Actor: " << entry.first << " Count: " << entry.second << endl;
+    }
+}
