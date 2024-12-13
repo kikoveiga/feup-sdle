@@ -16,8 +16,8 @@ class Worker {
     map<string, ShoppingList> inMemoryShoppingLists;
 
 public:
-    Worker(const string& backend_url, int worker_id, Database& db);
-    void run() const;
+    Worker(string backend_url, int worker_id, Database& db);
+    [[noreturn]] void run() const;
 };
 
 #endif //WORKER_H

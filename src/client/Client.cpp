@@ -1,13 +1,12 @@
 #include "Client.h"
 
 #include <iostream>
-#include <mongocxx/instance.hpp>
-#include <bsoncxx/json.hpp>
+#include <fstream>
 #include <Message.h>
 
 int Client::client_id_counter = 0;
 
-Client::Client() : localDatabase(mongocxx::uri{}), context(1), dealer_socket(context, zmq::socket_type::dealer) {
+Client::Client() : context(1), dealer_socket(context, zmq::socket_type::dealer) {
     client_id = "Client" + to_string(++client_id_counter);
     cout << client_id << " running..." << endl;
     dealer_socket.set(zmq::sockopt::routing_id, client_id);
@@ -30,7 +29,7 @@ void Client::syncWithServer() {
         auto list = ShoppingList::from_json(list_json);
         localShoppingLists[list.get_list_id()] = list;
 
-        saveToLocalDatabase(list);
+        saveToLocalDatabase();
     }
 }
 
@@ -56,37 +55,50 @@ void Client::send_request(const Operation operation, const string& list_id, cons
 
 void Client::loadFromLocalDatabase() {
 
-    const auto db = localDatabase["client_db"];
-    auto collection = db["shoppingLists"];
-    auto cursor = collection.find({});
+    ifstream infile("shoppingLists.json");
+    if (!infile.is_open()) {
+        cout << "No local database found." << endl;
+        return;
+    }
 
-    for (const auto& doc : cursor) {
-        string json_str = bsoncxx::to_json(doc);
-        auto json_obj = json::parse(json_str);
+    json json_data;
+    infile >> json_data;
+    infile.close();
 
-        auto list = ShoppingList::from_json(json_obj);
-
+    for (const auto& list_json : json_data["shoppingLists"]) {
+        auto list = ShoppingList::from_json(list_json);
         localShoppingLists[list.get_list_id()] = list;
     }
 
     cout << "Loaded " << localShoppingLists.size() << " lists from local database." << endl;
 }
 
-void Client::saveToLocalDatabase(const ShoppingList& list) {
-    const auto db = localDatabase["client_db"];
-    auto collection = db["shoppingLists"];
-
-    collection.delete_many({});
+void Client::saveToLocalDatabase() {
+    json json_data;
+    json_data["shoppingLists"] = json::array();
 
     for (const auto& [list_id, list] : localShoppingLists) {
-        json json_obj = list.to_json();
+        json_data["shoppingLists"].push_back(list.to_json());
     }
+
+    ofstream outfile("shoppingLists.json");
+    if (!outfile.is_open()) {
+        cerr << "Error opening file" << endl;
+        return;
+    }
+
+    outfile << json_data.dump(4);
+    outfile.close();
+
+    cout << "Saved " << localShoppingLists.size() << " lists to local database." << endl;
 }
 
+Client::~Client() {
+    cout << "Client shutting down..." << endl;
+    saveToLocalDatabase();
+}
 
 int main() {
-
-    mongocxx::instance instance{};
 
     Client client;
 
@@ -95,8 +107,8 @@ int main() {
         {"quantity", 2}
     };
 
-    // client.send_request(Operation::CREATE_LIST, "list1", {});
-    client.send_request(Operation::ADD_ITEM_TO_LIST, "list1", data);
+    client.send_request(Operation::CREATE_LIST, "list1", {});
+    // client.send_request(Operation::ADD_ITEM_TO_LIST, "list1", data);
 
 
     return 0;

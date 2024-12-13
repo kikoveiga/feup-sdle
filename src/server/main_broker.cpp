@@ -5,5 +5,4 @@ int main() {
     mongocxx::instance instance{};
     Broker broker;
     broker.run();
-    return 0;
 }
