@@ -1,30 +1,39 @@
 #ifndef SHOPPINGLIST_H
 #define SHOPPINGLIST_H
 
-#include "ShoppingItem.h"
-#include <unordered_map>
+#include <iostream>
+#include <map>
+#include <string>
+#include <nlohmann/json.hpp>
+#include "CCounter.h"
 
-using namespace std;
+using json = nlohmann::json;
 
 class ShoppingList {
-    string list_id;
-    unordered_map<string, ShoppingItem> items;
+private:
+    std::string name;
+    std::map<std::string, CCounter> items; // ORMap: item name -> CCounter
 
 public:
-    ShoppingList();
-    explicit ShoppingList(string list_id);
-
-    void add_item(const string& name);
-    void add_item(const ShoppingItem& item);
-    void mark_item_acquired(const string& name);
-
-    const string& get_list_id() const;
-    const unordered_map<string, ShoppingItem>& get_items() const;
-    void merge(ShoppingList& other);
+    ShoppingList(const std::string& list_name);
+    
+    // Adds an item or increments the counter for an existing item
+    void add_item(const std::string& item_name, const CCounter& counter);
+    
+    // Marks an item as acquired by decrementing its counter
+    void mark_item_acquired(const std::string& item_name, const std::string& actor);
+    
+    // Merges another shopping list into this one
+    void merge(const ShoppingList& other);
+    
+    // Prints the shopping list
     void print() const;
 
+    // Serializes the shopping list to JSON
     json to_json() const;
-    static ShoppingList from_json(const json& j);
+    
+    // Deserializes the shopping list from JSON
+    static ShoppingList from_json(const json& json);
 };
 
 #endif // SHOPPINGLIST_H
