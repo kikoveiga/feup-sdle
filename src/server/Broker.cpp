@@ -206,8 +206,13 @@ void Broker::handle_client_message() {
         cout << "Broker: Forwarded request from Client " << client_identity << " to Worker " << worker_id << endl;
     }
     else {
-        cerr << "E: no workers available, enqueuing request from Client " << client_identity << endl;
-        client_queue.push_back({move(client_msg), s_clock()});
+
+        if (client_queue.size() < MAX_QUEUE_SIZE) {
+            cerr << "E: no workers available, enqueuing request from Client " << client_identity << endl;
+            client_queue.push_back({move(client_msg), s_clock()});
+        } else {
+            cerr << "E: Client request queue is full, dropping request from Client " << client_identity << endl;
+        }
     }
 }
 
