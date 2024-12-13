@@ -1,77 +1,59 @@
 #include "ShoppingList.h"
 
-#include <utility>
+ShoppingList::ShoppingList(const std::string& list_name) : name(list_name) {}
 
-ShoppingList::ShoppingList() = default;
-
-ShoppingList::ShoppingList(string list_id) : list_id(std::move(list_id)) {}
-
-void ShoppingList::add_item(const string& name) {
-    if (items.find(name) == items.end()) {
-        items[name] = ShoppingItem(name);
-    }
-
-    items[name].increment();
+void ShoppingList::add_item(const std::string& item_name, const CCounter& counter) {
+    items[item_name] = counter;
 }
 
-void ShoppingList::add_item(const ShoppingItem& item) {
-    if (items.find(item.getName()) == items.end()) {
-        items[item.getName()] = item;
-    } else {
-        items[item.getName()].increment();
+
+void ShoppingList::mark_item_acquired(const std::string& item_name, const std::string& actor) {
+    if (items.find(item_name) != items.end()) {
+        items[item_name].decrement(actor); // Decrement for acquired item
     }
 }
 
-void ShoppingList::mark_item_acquired(const string& name) {
-    if (items.find(name) != items.end()) {
-        items[name].decrement();
-    }
-}
-
-const string& ShoppingList::get_list_id() const {
-    return list_id;
-}
-
-const unordered_map<string, ShoppingItem>& ShoppingList::get_items() const {
-    return items;
-}
-
-void ShoppingList::merge(ShoppingList& other) {
-    for (auto& [name, item] : other.items) {
-        if (items.find(name) == items.end()) {
-            items[name] = move(item);
+void ShoppingList::merge(const ShoppingList& other) {
+    for (const auto& item : other.items) {
+        if (items.find(item.first) != items.end()) {
+            items[item.first].merge(item.second); 
         } else {
-            items[name].merge(item);
+            items[item.first] = item.second;
         }
     }
 }
 
 void ShoppingList::print() const {
-    for (const auto& [name, item] : items) {
-        item.print();
+    std::cout << "Shopping List: " << name << std::endl;
+    for (const auto& item : items) {
+        std::cout << item.first << " - Quantity: " << item.second.get_value() << std::endl;
     }
 }
 
 json ShoppingList::to_json() const {
-    json items_json = json::array();
-
-    for (const auto& [name, item] : items) {
-        items_json.push_back(item.to_json());
+    json j;
+    for (const auto& item : items) {
+        json item_json;
+        item_json["name"] = item.first;
+        item_json["quantity"] = item.second.get_value(); 
+        j.push_back(item_json);
     }
-
-    return json {
-        {"list_id", list_id},
-        {"items", items_json}
-    };
+    return j;
 }
 
-ShoppingList ShoppingList::from_json(const json& j) {
-    auto list = ShoppingList(j.at("list_id").get<string>());
+ShoppingList ShoppingList::from_json(const nlohmann::json& json) {
+    ShoppingList list("Deserialized List");
+    for (const auto& item : json) {
+        std::string name = item["name"];
+        int quantity = item["quantity"];
+        CCounter counter;
 
-    for (const auto& item_json : j.at("items")) {
-        ShoppingItem item = ShoppingItem::from_json(item_json);
-        list.add_item(item);
+        for (int i = 0; i < quantity; i++) {
+            counter.increment("Deserialized Actor");
+        }
+        list.items[name] = counter; 
     }
-
     return list;
 }
+
+
