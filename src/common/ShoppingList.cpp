@@ -16,9 +16,9 @@ void ShoppingList::mark_item_acquired(const std::string& item_name, const std::s
 void ShoppingList::merge(const ShoppingList& other) {
     for (const auto& item : other.items) {
         if (items.find(item.first) != items.end()) {
-            items[item.first].merge(item.second); // Merge counters for existing items
+            items[item.first].merge(item.second); 
         } else {
-            items[item.first] = item.second; // Add new item if it doesn't exist
+            items[item.first] = item.second;
         }
     }
 }
@@ -35,7 +35,7 @@ json ShoppingList::to_json() const {
     for (const auto& item : items) {
         json item_json;
         item_json["name"] = item.first;
-        item_json["quantity"] = item.second.get_value(); // Serialize quantity
+        item_json["quantity"] = item.second.get_value(); 
         j.push_back(item_json);
     }
     return j;
@@ -46,7 +46,7 @@ ShoppingList ShoppingList::from_json(const nlohmann::json& json) {
     for (const auto& item : json) {
         std::string name = item["name"];
         CCounter counter;
-        counter.increment(name); // Initialize with one increment (can be adjusted)
+        counter.increment(name); 
         list.add_item(name, counter);
     }
     return list;
