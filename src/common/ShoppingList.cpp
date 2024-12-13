@@ -45,10 +45,15 @@ ShoppingList ShoppingList::from_json(const nlohmann::json& json) {
     ShoppingList list("Deserialized List");
     for (const auto& item : json) {
         std::string name = item["name"];
+        int quantity = item["quantity"];
         CCounter counter;
-        counter.increment(name); 
-        list.add_item(name, counter);
+
+        for (int i = 0; i < quantity; i++) {
+            counter.increment("Deserialized Actor");
+        }
+        list.items[name] = counter; 
     }
     return list;
 }
+
 
