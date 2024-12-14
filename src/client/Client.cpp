@@ -34,10 +34,7 @@ void Client::syncWithServer() {
 }
 
 void Client::send_request(const Operation operation, const string& list_id, const json& data) {
-    Message msg;
-    msg.operation = operation;
-    msg.list_id = list_id;
-    msg.data = data;
+    const Message msg(operation, list_id, data);
 
     string request_str = msg.to_string();
     cout << "Sending request: " << request_str << endl;
@@ -101,14 +98,21 @@ int main() {
 
     Client client;
 
-    const json data = {
-        {"name", "Milk"},
-        {"quantity", 2}
-    };
 
-    client.send_request(Operation::CREATE_LIST, "list1", {});
-    // client.send_request(Operation::ADD_ITEM_TO_LIST, "list1", data);
+    ShoppingList list1;
 
+    // Add items to list1
+    list1.add_item("Apples");
+    list1.add_item("Apples");
+    list1.add_item("Oranges");
+
+    // Mark some items as acquired
+    list1.mark_item_acquired("Apples");
+
+    json lists = json::array();
+    lists.push_back(list1.to_json());
+
+    client.send_request(Operation::SEND_ALL_LISTS, "", lists);
 
     return 0;
 }

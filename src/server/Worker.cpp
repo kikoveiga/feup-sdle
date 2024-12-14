@@ -103,6 +103,8 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
             const ShoppingItem item = ShoppingItem::from_json(data);
             inMemoryShoppingLists[list_id].add_item(item);
             cout << "Added " << item.getQuantity() << ' ' << item.getName() << " to " << list_id << endl;
+
+            break;
         }
 
         case Operation::REMOVE_ITEM_FROM_LIST: {
@@ -115,25 +117,33 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
 
             try {
                 it->second.mark_item_acquired(item_id);
-                cout << "Item '" << item_id << "' marked as acquired in list: " << list_id << endl;
+                cout << "Item '" << item_id << "' marked as acquired in: " << list_id << endl;
 
                 centralDatabase.saveList(it->second);
             } catch (const exception& e) {
                 cerr << "Error marking item as acquired: " << e.what() << endl;
             }
+
+            break;
         }
 
         case Operation::SEND_ALL_LISTS: {
 
-            json all_lists = json::array();
-            for (const auto& [list_id, list] : inMemoryShoppingLists) {
-                all_lists.push_back(list.to_json());
+            json client_lists = msg.data;
+
+            map<string, ShoppingList> clientShoppingLists;
+            for (const auto& list_json : client_lists) {
+                auto list = ShoppingList::from_json(list_json);
+                clientShoppingLists[list.get_list_id()] = list;
             }
 
-            Message response(msg.operation, "", all_lists);
-
-            cout << "Retrieved all lists" << endl;
-            break;
+            for (auto& [list_id, list] : clientShoppingLists) {
+                if (inMemoryShoppingLists.find(list_id) == inMemoryShoppingLists.end()) {
+                    inMemoryShoppingLists[list_id].merge(list);
+                } else {
+                    inMemoryShoppingLists[list_id] = list;
+                }
+            }
         }
 
         default:

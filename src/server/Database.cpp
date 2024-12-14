@@ -22,25 +22,6 @@ void Database::saveList(const ShoppingList& list) const {
     coll.update_one(filter.view(), update.view(), mongocxx::options::update().upsert(true));
 }
 
-ShoppingList Database::loadList(const string& list_id) const {
-
-    const auto client = pool.acquire();
-
-    const auto db = (*client)["server_db"];
-    auto coll = db["shopping_lists"];
-
-    bsoncxx::builder::stream::document filter;
-    filter << "list_id" << list_id;
-
-    if (const auto maybe_doc = coll.find_one(filter.view())) {
-        auto json_str = bsoncxx::to_json(*maybe_doc);
-        const auto j = json::parse(json_str);
-        return ShoppingList::from_json(j);
-    }
-
-    return ShoppingList(list_id);
-}
-
 map<string, ShoppingList> Database::loadAllLists() const {
 
     const auto client = pool.acquire();
@@ -57,6 +38,8 @@ map<string, ShoppingList> Database::loadAllLists() const {
         ShoppingList list = ShoppingList::from_json(j);
         result[list.get_list_id()] = list;
     }
+
+    cout << "Loaded " << result.size() << " lists from database." << endl;
 
     return result;
 }

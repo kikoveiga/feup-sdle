@@ -121,34 +121,6 @@ void Server::handleRequest(const string& client_id, const Message& msg) {
             cout << "Marked item acquired in list: " << msg.list_id << endl;
             break;
 
-        case Operation::GET_LIST:
-            if (inMemoryShoppingLists.find(msg.list_id) == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + msg.list_id);
-
-            {
-                Message response;
-                response.operation = Operation::GET_LIST;
-                response.list_id = msg.list_id;
-                response.data = inMemoryShoppingLists[msg.list_id].to_json();
-                router_socket.send(zmq::buffer(response.to_string()), zmq::send_flags::none);
-            }
-            cout << "Retrieved list: " << msg.list_id << endl;
-            break;
-
-        case Operation::GET_ALL_LISTS: {
-            Message response;
-            response.operation = Operation::GET_ALL_LISTS;
-
-            json all_lists = json::array();
-            for (const auto& [list_id, list] : inMemoryShoppingLists) {
-                all_lists.push_back(list.to_json());
-            }
-            response.data = all_lists;
-            router_socket.send(zmq::buffer(response.to_string()), zmq::send_flags::none);
-
-            cout << "Retrieved all lists" << endl;
-            break;
-        }
-
         default:
             throw invalid_argument("Invalid operation");
 

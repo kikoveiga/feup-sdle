@@ -6,8 +6,6 @@ ShoppingItem::ShoppingItem() = default;
 
 ShoppingItem::ShoppingItem(string name) : name(move(name)) {}
 
-ShoppingItem::ShoppingItem(const ShoppingItem& other) : name(other.name), quantity(other.quantity) {}
-
 ShoppingItem::ShoppingItem(ShoppingItem&& other) noexcept : name(move(other.name)), quantity(move(other.quantity)) {}
 
 ShoppingItem& ShoppingItem::operator=(const ShoppingItem& other) noexcept {

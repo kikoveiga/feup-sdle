@@ -19,7 +19,7 @@ public:
     explicit ShoppingItem(string name);
 
     // Copy constructor
-    ShoppingItem(const ShoppingItem& other);
+    ShoppingItem(const ShoppingItem& other) = default;
 
     // Move constructor
     ShoppingItem(ShoppingItem&& other) noexcept;
