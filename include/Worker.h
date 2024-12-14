@@ -6,18 +6,18 @@
 #include "ShoppingList.h"
 
 class Worker {
-    void handle_message(const Message& msg, string& response);
+    void handleRequest(const string& client_id, const Message& msg);
 
     string backend_url;
     int worker_id;
-    Database& db;
+    Database& centralDatabase;
 
     mutex g_mutex;
     map<string, ShoppingList> inMemoryShoppingLists;
 
 public:
     Worker(string backend_url, int worker_id, Database& db);
-    [[noreturn]] void run() const;
+    [[noreturn]] void run();
 };
 
 #endif //WORKER_H
