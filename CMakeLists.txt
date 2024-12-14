@@ -20,6 +20,7 @@ find_package(bsoncxx REQUIRED)
 # Add common sources
 set(COMMON_SOURCES
     src/common/PNCounter.cpp
+    src/common/CCounter.cpp
     src/common/ShoppingItem.cpp
     src/common/ShoppingList.cpp
     src/common/Message.cpp
@@ -39,8 +40,7 @@ add_executable(main_worker src/server/main_worker.cpp ${COMMON_SOURCES} ${SERVER
 add_executable(main src/main.cpp ${COMMON_SOURCES})
 
 # Link libraries
-target_link_libraries(client PRIVATE zmqpp mongocxx bsoncxx)
-target_link_libraries(server PRIVATE zmqpp mongocxx bsoncxx)
+target_link_libraries(client PRIVATE zmqpp)
 target_link_libraries(main_broker PRIVATE zmqpp mongocxx bsoncxx)
 target_link_libraries(main_worker PRIVATE zmqpp mongocxx bsoncxx)
 target_link_libraries(main PRIVATE zmqpp mongocxx bsoncxx)

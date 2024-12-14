@@ -6,22 +6,6 @@
 
 Database::Database() : pool{mongocxx::uri{}} {}
 
-void Database::saveList(const ShoppingList& list) const {
-
-    const auto client = pool.acquire();
-
-    const auto db = (*client)["server_db"];
-    auto coll = db["shopping_lists"];
-
-    const auto doc = bsoncxx::from_json(list.to_json().dump());
-
-    bsoncxx::builder::stream::document filter, update;
-    filter << "list_id" << list.get_list_id();
-    update << "$set" << doc.view();
-
-    coll.update_one(filter.view(), update.view(), mongocxx::options::update().upsert(true));
-}
-
 map<string, ShoppingList> Database::loadAllLists() const {
 
     const auto client = pool.acquire();
@@ -35,25 +19,13 @@ map<string, ShoppingList> Database::loadAllLists() const {
     for (auto& doc : cursor) {
         auto json_str = bsoncxx::to_json(doc);
         auto j = json::parse(json_str);
-        ShoppingList list = ShoppingList::from_json(j);
-        result[list.get_list_id()] = list;
+       // ShoppingList list = ShoppingList::from_json(j);
+       // result[list.getName()] = list;
     }
 
     cout << "Loaded " << result.size() << " lists from database." << endl;
 
     return result;
-}
-
-void Database::deleteList(const string &list_id) const {
-
-    const auto client = pool.acquire();
-
-    const auto db = (*client)["server_db"];
-    auto coll = db["shopping_lists"];
-
-    bsoncxx::builder::stream::document filter;
-    filter << "list_id" << list_id;
-    coll.delete_one(filter.view());
 }
 
 

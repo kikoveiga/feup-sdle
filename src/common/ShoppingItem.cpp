@@ -1,12 +1,14 @@
 #include "ShoppingItem.h"
 
-ShoppingItem::ShoppingItem(const std::string& item_name) : name(item_name) {}
+#include <utility>
 
-void ShoppingItem::increment(const std::string& actor) {
+ShoppingItem::ShoppingItem(string name) : name(move(name)) {}
+
+void ShoppingItem::increment(const string& actor) {
     counter.increment(actor);
 }
 
-void ShoppingItem::decrement(const std::string& actor) {
+void ShoppingItem::decrement(const string& actor) {
     counter.decrement(actor);
 }
 
@@ -18,6 +20,19 @@ void ShoppingItem::merge(const ShoppingItem& other) {
     counter.merge(other.counter);
 }
 
-std::string ShoppingItem::get_name() const {
+string ShoppingItem::get_name() const {
     return name;
+}
+
+json ShoppingItem::to_json() const {
+    json j;
+    j["name"] = name;
+    j["counter"] = counter.to_json();
+    return j;
+}
+
+ShoppingItem ShoppingItem::from_json(const json& j) {
+    ShoppingItem item(j.at("name").get<string>());
+    item.counter = CCounter::from_json(j.at("counter"));
+    return item;
 }

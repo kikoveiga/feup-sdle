@@ -1,39 +1,38 @@
 #ifndef SHOPPINGLIST_H
 #define SHOPPINGLIST_H
 
-#include <iostream>
 #include <map>
+#include <ShoppingItem.h>
 #include <string>
 #include <nlohmann/json.hpp>
 #include "CCounter.h"
 
-using json = nlohmann::json;
+using namespace std;
 
 class ShoppingList {
-private:
-    std::string name;
-    std::map<std::string, CCounter> items; // ORMap: item name -> CCounter
+
+    string name;
+    map<string, ShoppingItem> items;
+    mutable mutex mtx;
 
 public:
-    ShoppingList(const std::string& list_name);
+    ShoppingList() = default;
+    explicit ShoppingList(string name);
+    ShoppingList(const ShoppingList& other);
+    ShoppingList& operator=(const ShoppingList& other);
+
+    void add_item(const string& name, const string& actor);
     
-    // Adds an item or increments the counter for an existing item
-    void add_item(const std::string& item_name, const CCounter& counter);
+    void mark_item_acquired(const string& name, const string& actor);
+
+    [[nodiscard]] string getName() const;
     
-    // Marks an item as acquired by decrementing its counter
-    void mark_item_acquired(const std::string& item_name, const std::string& actor);
-    
-    // Merges another shopping list into this one
     void merge(const ShoppingList& other);
     
-    // Prints the shopping list
     void print() const;
 
-    // Serializes the shopping list to JSON
-    json to_json() const;
-    
-    // Deserializes the shopping list from JSON
-    static ShoppingList from_json(const json& json);
+    [[nodiscard]] json to_json() const;
+    static ShoppingList from_json(const json& j);
 };
 
 #endif // SHOPPINGLIST_H

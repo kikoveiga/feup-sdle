@@ -2,20 +2,27 @@
 #define SHOPPINGITEM_H
 
 #include <string>
+#include <nlohmann/json.hpp>
 #include "CCounter.h"
 
+using namespace std;
+
 class ShoppingItem {
-private:
-    std::string name;
+
+    string name;
     CCounter counter;
 
 public:
-    ShoppingItem(const std::string& item_name);
-    void increment(const std::string& actor);
-    void decrement(const std::string& actor);
+    ShoppingItem() = default;
+    explicit ShoppingItem(string name);
+    void increment(const string& actor);
+    void decrement(const string& actor);
     int get_quantity() const;
     void merge(const ShoppingItem& other);
-    std::string get_name() const;
+    string get_name() const;
+
+    json to_json() const;
+    static ShoppingItem from_json(const json& j);
 };
 
 #endif // SHOPPINGITEM_H

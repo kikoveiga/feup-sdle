@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "Message.h"
+#include "ShoppingItem.h"
 #include <thread>
 #include <zmq.hpp>
 #include "zhelpers.hpp"
@@ -76,73 +77,29 @@ void Worker::run() {
 
 void Worker::handleRequest(const string& client_id, const Message& msg) {
 
-    string list_id = msg.list_id;
+    const string list_id = msg.list_id;
     json data = msg.data;
 
     switch (msg.operation) {
 
-        case Operation::CREATE_LIST: {
-            if (inMemoryShoppingLists.find(list_id) != inMemoryShoppingLists.end()) throw invalid_argument("List already exists: " + msg.list_id);
-
-            const ShoppingList list(list_id);
-            inMemoryShoppingLists[list_id] = list;
-            cout << "Created list: " << list_id << endl;
-
-            centralDatabase.saveList(list);
-            break;
-        }
-
-        case Operation::DELETE_LIST:
-            if (inMemoryShoppingLists.erase(list_id) == 0) throw invalid_argument("List not found: " + list_id);
-            cout << "Deleted list: " << list_id << endl;
-            break;
-
-        case Operation::ADD_ITEM_TO_LIST: {
-            if (inMemoryShoppingLists.find(list_id) == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + list_id);
-
-            const ShoppingItem item = ShoppingItem::from_json(data);
-            inMemoryShoppingLists[list_id].add_item(item);
-            cout << "Added " << item.getQuantity() << ' ' << item.getName() << " to " << list_id << endl;
-
-            break;
-        }
-
-        case Operation::REMOVE_ITEM_FROM_LIST: {
-            const auto it = inMemoryShoppingLists.find(list_id);
-            if (it == inMemoryShoppingLists.end()) throw invalid_argument("List not found: " + list_id);
-
-            if (!data.contains("name") || !data["name"].is_string()) throw invalid_argument("Invalid data: 'item_id' is required and must be a string");
-
-            const string item_id = data["name"].get<string>();
-
-            try {
-                it->second.mark_item_acquired(item_id);
-                cout << "Item '" << item_id << "' marked as acquired in: " << list_id << endl;
-
-                centralDatabase.saveList(it->second);
-            } catch (const exception& e) {
-                cerr << "Error marking item as acquired: " << e.what() << endl;
-            }
-
-            break;
-        }
-
         case Operation::SEND_ALL_LISTS: {
 
-            json client_lists = msg.data;
+            if (!msg.data.empty()) {
 
-            map<string, ShoppingList> clientShoppingLists;
-            for (const auto& list_json : client_lists) {
-                auto list = ShoppingList::from_json(list_json);
-                clientShoppingLists[list.get_list_id()] = list;
-            }
+                map<string, ShoppingList> clientShoppingLists;
 
-            for (auto& [list_id, list] : clientShoppingLists) {
-                if (inMemoryShoppingLists.find(list_id) == inMemoryShoppingLists.end()) {
-                    inMemoryShoppingLists[list_id].merge(list);
-                } else {
-                    inMemoryShoppingLists[list_id] = list;
+                for (const auto& list_json : data) {
+                    auto list = ShoppingList::from_json(list_json);
+                    clientShoppingLists.emplace(list.getName(), list);
                 }
+
+                for (auto& [list_id, list] : clientShoppingLists) {
+                    auto [it, inserted] = inMemoryShoppingLists.emplace(list_id, ShoppingList(list.getName()));
+                    if (!inserted) {
+                        it->second.merge(list);
+                    }
+                }
+                break;
             }
         }
 

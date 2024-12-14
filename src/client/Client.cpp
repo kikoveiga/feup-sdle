@@ -27,7 +27,7 @@ void Client::syncWithServer() {
     auto response = json::parse(reply.to_string());
     for (const auto& list_json : response["lists"]) {
         auto list = ShoppingList::from_json(list_json);
-        localShoppingLists[list.get_list_id()] = list;
+        localShoppingLists[list.getName()] = list;
 
         saveToLocalDatabase();
     }
@@ -63,7 +63,7 @@ void Client::loadFromLocalDatabase() {
 
     for (const auto& list_json : json_data["shoppingLists"]) {
         auto list = ShoppingList::from_json(list_json);
-        localShoppingLists[list.get_list_id()] = list;
+        localShoppingLists[list.getName()] = list;
     }
 
     cout << "Loaded " << localShoppingLists.size() << " lists from local database." << endl;
@@ -98,16 +98,7 @@ int main() {
 
     Client client;
 
-
-    ShoppingList list1;
-
-    // Add items to list1
-    list1.add_item("Apples");
-    list1.add_item("Apples");
-    list1.add_item("Oranges");
-
-    // Mark some items as acquired
-    list1.mark_item_acquired("Apples");
+    const ShoppingList list1("Groceries");
 
     json lists = json::array();
     lists.push_back(list1.to_json());

@@ -8,7 +8,7 @@
 int main() {
     mongocxx::instance instance{};
 
-    constexpr int WORKER_COUNT = 4;
+    constexpr int WORKER_COUNT = 1;
     Database db;
     vector<thread> workers;
     for (int i = 0; i < WORKER_COUNT; ++i) {
