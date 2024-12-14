@@ -19,6 +19,11 @@ string Client::get_client_id() const {
     return client_id;
 }
 
+void Client::addShoppingList(const string &name, const ShoppingList &list) {
+    localShoppingLists[name] = list;
+}
+
+
 void Client::syncWithServer() {
     send_request(Operation::SEND_ALL_LISTS, "", {});
     zmq::message_t reply;
@@ -51,11 +56,20 @@ void Client::send_request(const Operation operation, const string& list_id, cons
 
 void Client::loadFromLocalDatabase() {
 
-    ifstream infile("shoppingLists.json");
+    ifstream infile("../clientsData/" + client_id + ".json");
     if (!infile.is_open()) {
         cout << "No local database found." << endl;
         return;
     }
+
+    // Check if the file is empty
+    infile.seekg(0, ios::end);
+    if (infile.tellg() == 0) {
+        cout << "Local database is empty." << endl;
+        infile.close();
+        return;
+    }
+    infile.seekg(0, ios::beg);
 
     json json_data;
     infile >> json_data;
@@ -70,6 +84,8 @@ void Client::loadFromLocalDatabase() {
 }
 
 void Client::saveToLocalDatabase() {
+
+    cout << "Saving lists to local database..." << endl;
     json json_data;
     json_data["shoppingLists"] = json::array();
 
@@ -77,7 +93,7 @@ void Client::saveToLocalDatabase() {
         json_data["shoppingLists"].push_back(list.to_json());
     }
 
-    ofstream outfile("shoppingLists.json");
+    ofstream outfile("../clientsData/" + client_id + ".json");
     if (!outfile.is_open()) {
         cerr << "Error opening file" << endl;
         return;
@@ -99,11 +115,9 @@ int main() {
     Client client;
 
     const ShoppingList list1("Groceries");
+    client.addShoppingList(list1.getName(), list1);
 
-    json lists = json::array();
-    lists.push_back(list1.to_json());
-
-    client.send_request(Operation::SEND_ALL_LISTS, "", lists);
+    while (true) {}
 
     return 0;
 }
