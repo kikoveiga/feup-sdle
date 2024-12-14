@@ -25,7 +25,6 @@ ShoppingList& ShoppingList::operator=(const ShoppingList& other) {
     return *this;
 }
 
-
 void ShoppingList::add_item(const string& name, const string& actor) {
     lock_guard lock(mtx);
     if (items.find(name) == items.end()) {
