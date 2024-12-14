@@ -34,7 +34,6 @@ set(SERVER_SOURCES
 
 # Add executables
 add_executable(client src/client/Client.cpp ${COMMON_SOURCES})
-add_executable(server src/server/Server.cpp ${COMMON_SOURCES})
 add_executable(main_broker src/server/main_broker.cpp ${COMMON_SOURCES} ${SERVER_SOURCES})
 add_executable(main_worker src/server/main_worker.cpp ${COMMON_SOURCES} ${SERVER_SOURCES})
 add_executable(main src/main.cpp ${COMMON_SOURCES})
