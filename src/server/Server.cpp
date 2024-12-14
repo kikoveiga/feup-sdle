@@ -104,7 +104,6 @@ void Server::handleRequest(const string& client_id, const Message& msg) {
             inMemoryShoppingLists[msg.list_id] = ShoppingList(msg.list_id);
             cout << "Created list: " << msg.list_id << endl;
 
-            publishUpdate(msg.list_id);
             saveListToCentralDatabase(msg.list_id);
             break;
 
@@ -115,12 +114,10 @@ void Server::handleRequest(const string& client_id, const Message& msg) {
 
         case Operation::ADD_ITEM_TO_LIST:
             addItemToList(msg.list_id, msg.data);
-            publishUpdate(msg.list_id);
             break;
 
         case Operation::REMOVE_ITEM_FROM_LIST:
             markItemAcquired(msg.list_id, msg.data);
-            publishUpdate(msg.list_id);
             cout << "Marked item acquired in list: " << msg.list_id << endl;
             break;
 
@@ -182,14 +179,6 @@ void Server::markItemAcquired(const string &list_id, const json& data) {
     } catch (const exception& e) {
         cerr << "Error marking item as acquired: " << e.what() << endl;
     }
-}
-
-void Server::publishUpdate(const string& list_id) {
-    Message msg;
-    msg.operation = Operation::GET_LIST;
-    msg.list_id = list_id;
-    msg.data = inMemoryShoppingLists[list_id].to_json();
-    publisher_socket.send(zmq::buffer(msg.to_string()), zmq::send_flags::none);
 }
 
 int main() {

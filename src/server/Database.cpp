@@ -1,14 +1,18 @@
 #include "Database.h"
 
 #include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
-Database::Database() : uri{mongocxx::uri{}} {}
+Database::Database() : pool{mongocxx::uri{}} {}
 
-void Database::saveList(const ShoppingList &list) const {
-    const mongocxx::client client{uri};
-    const auto db = client["server_db"];
+void Database::saveList(const ShoppingList& list) const {
+
+    const auto client = pool.acquire();
+
+    const auto db = (*client)["server_db"];
     auto coll = db["shopping_lists"];
+
     const auto doc = bsoncxx::from_json(list.to_json().dump());
 
     bsoncxx::builder::stream::document filter, update;
@@ -19,11 +23,15 @@ void Database::saveList(const ShoppingList &list) const {
 }
 
 ShoppingList Database::loadList(const string& list_id) const {
-    const mongocxx::client client{uri};
-    const auto db = client["server_db"];
+
+    const auto client = pool.acquire();
+
+    const auto db = (*client)["server_db"];
     auto coll = db["shopping_lists"];
+
     bsoncxx::builder::stream::document filter;
     filter << "list_id" << list_id;
+
     if (const auto maybe_doc = coll.find_one(filter.view())) {
         auto json_str = bsoncxx::to_json(*maybe_doc);
         const auto j = json::parse(json_str);
@@ -34,10 +42,14 @@ ShoppingList Database::loadList(const string& list_id) const {
 }
 
 map<string, ShoppingList> Database::loadAllLists() const {
-    const mongocxx::client client{uri};
-    map<string, ShoppingList> result;
-    const auto db = client["server_db"];
+
+    const auto client = pool.acquire();
+
+    const auto db = (*client)["server_db"];
     auto coll = db["shopping_lists"];
+
+    map<string, ShoppingList> result;
+
     auto cursor = coll.find({});
     for (auto& doc : cursor) {
         auto json_str = bsoncxx::to_json(doc);
@@ -50,9 +62,12 @@ map<string, ShoppingList> Database::loadAllLists() const {
 }
 
 void Database::deleteList(const string &list_id) const {
-    const mongocxx::client client{uri};
-    const auto db = client["server_db"];
+
+    const auto client = pool.acquire();
+
+    const auto db = (*client)["server_db"];
     auto coll = db["shopping_lists"];
+
     bsoncxx::builder::stream::document filter;
     filter << "list_id" << list_id;
     coll.delete_one(filter.view());

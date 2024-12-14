@@ -20,7 +20,7 @@ string Client::get_client_id() const {
 }
 
 void Client::syncWithServer() {
-    send_request(Operation::GET_ALL_LISTS, "", {});
+    send_request(Operation::SEND_ALL_LISTS, "", {});
     zmq::message_t reply;
     dealer_socket.recv(reply, zmq::recv_flags::none);
 
@@ -32,7 +32,6 @@ void Client::syncWithServer() {
         saveToLocalDatabase();
     }
 }
-
 
 void Client::send_request(const Operation operation, const string& list_id, const json& data) {
     Message msg;

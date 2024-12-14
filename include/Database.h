@@ -5,11 +5,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <mongocxx/client.hpp>
+#include <mongocxx/pool.hpp>
 #include "ShoppingList.h"
 
 class Database {
-    mongocxx::uri uri;
+    mutable mongocxx::pool pool;
 
 public:
     Database();

@@ -18,7 +18,8 @@ struct Worker {
 };
 
 struct QueuedRequest {
-    vector<zmq::message_t> message;
+    zmq::message_t client_id;
+    zmq::message_t client_msg;
     int64_t enqueue_time;
 };
 

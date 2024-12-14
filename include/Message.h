@@ -12,8 +12,8 @@ enum class Operation {
     DELETE_LIST,
     ADD_ITEM_TO_LIST,
     REMOVE_ITEM_FROM_LIST,
-    GET_LIST,
-    GET_ALL_LISTS
+
+    SEND_ALL_LISTS, // Use data = {} to just sync with server
 };
 
 void to_json(json& j, const Operation& op);
@@ -26,14 +26,13 @@ public:
     string list_id;
     json data;
 
-    Message();
+    Message(const Operation& operation, string list_id, json data);
 
     [[nodiscard]] string to_string() const;
-
     static Message from_string(const string& json_str);
 
-    friend void to_json(json& j, const Message& msg);
-    friend void from_json(const json& j, Message& msg);
+    static json to_json(const Message& msg);
+    static Message from_json(const json& j);
 
 };
 
