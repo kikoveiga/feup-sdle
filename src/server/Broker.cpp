@@ -4,7 +4,7 @@
 #include "zhelpers.hpp"
 
 #define HEARTBEAT_LIVENESS 3
-#define HEARTBEAT_INTERVAL 1000
+#define HEARTBEAT_INTERVAL 10000
 
 Broker::Broker() : context(1), frontend(context, ZMQ_ROUTER), backend(context, ZMQ_ROUTER) {
     frontend.bind("tcp://*:5555");
@@ -24,11 +24,9 @@ void Broker::worker_append(const string& identity) {
     w.identity = identity;
     w.expiry = s_clock() + HEARTBEAT_LIVENESS * HEARTBEAT_INTERVAL;
     workers.push_back(w);
-
-    cout << "I: worker ready: " << identity << endl;
 }
 
-void Broker::worker_delete(const string &identity) {
+void Broker::worker_delete(const string& identity) {
     for (auto it = workers.begin(); it < workers.end(); ++it) {
         if (it->identity == identity) {
             workers.erase(it);
@@ -62,13 +60,13 @@ string Broker::worker_dequeue() {
 void Broker::queue_purge() {
     const int64_t clock = s_clock();
     if (const auto it = remove_if(workers.begin(), workers.end(), [clock](const Worker& w) { return w.expiry < clock; }); it != workers.end()) {
-        cout << "Broker: purging " << distance(it, workers.end()) << " inactive workers" << endl;
+        cout << "Purging " << distance(it, workers.end()) << " inactive workers" << endl;
         workers.erase(it, workers.end());
     }
 
     while (!client_queue.empty()) {
-        if (auto&[message, enqueue_time] = client_queue.front(); clock - enqueue_time > 30000) { // 30 seconds timeout
-            cerr << "E: Dropping Client request due to timeout" << endl;
+        if (auto&[client_id, client_msg, enqueue_time] = client_queue.front(); clock - enqueue_time > 30000) { // 30 seconds timeout
+            cerr << "E: Dropping " << client_id.to_string() << " request due to timeout" << endl;
             client_queue.pop_front();
         } else {
             break;
@@ -87,7 +85,6 @@ void Broker::run() {
             { frontend, 0, ZMQ_POLLIN, 0 }
         };
 
-        cout << "Broker: polling for workers and clients..." << endl;
         zmq::poll(items, 2, chrono::milliseconds(HEARTBEAT_INTERVAL));
 
         // Backend (workers)
@@ -102,7 +99,6 @@ void Broker::run() {
 
         // Heartbeats
         if (s_clock() > heartbeat_at) {
-            cout << "Broker: sending HEARTBEAT to all workers..." << endl;
             for (auto&[identity, expiry] : workers) {
                 zmq::message_t worker_identity(identity.c_str(), identity.size());
                 zmq::message_t empty;
@@ -112,7 +108,7 @@ void Broker::run() {
                 backend.send(empty, zmq::send_flags::sndmore);
                 backend.send(heartbeat, zmq::send_flags::none);
 
-                cout << "Broker: sent HEARTBEAT to worker " << identity << endl;
+                cout << "HEARTBEAT to " << identity << endl;
             }
             heartbeat_at = s_clock() + HEARTBEAT_INTERVAL;
         }
@@ -122,29 +118,23 @@ void Broker::run() {
 }
 
 void Broker::handle_worker_message() {
-    cout << "Broker: received message from worker" << endl;
-    zmq::message_t identity;
-    zmq::message_t empty;
-    zmq::message_t content;
+    zmq::message_t worker_id;
+    zmq::message_t worker_msg;
 
-    backend.recv(identity, zmq::recv_flags::none);
-    backend.recv(empty, zmq::recv_flags::none);
-    backend.recv(content, zmq::recv_flags::none);
+    backend.recv(worker_id, zmq::recv_flags::none);
+    backend.recv(worker_msg, zmq::recv_flags::none);
 
-    const string worker_identity(static_cast<char*>(identity.data()), identity.size());
-    const string message(static_cast<char*>(content.data()), content.size());
+    const string worker_id_str = worker_id.to_string();
+    const string worker_msg_str = worker_msg.to_string();
 
-    cout << "Broker: worker identity: " << worker_identity << endl;
-    cout << "Broker: worker message: " << message << endl;
-
-    if (message == "READY") {
-        worker_append(worker_identity);
-        cout << "Broker: worker " << worker_identity << " is READY" << endl;
+    if (worker_msg_str == "READY") {
+        worker_append(worker_id_str);
+        cout << worker_id_str << " is READY" << endl;
 
         // Dispatch queued Client requests if any
         if (!client_queue.empty()) {
             const string queued_worker_id = worker_dequeue();
-            auto [message, enqueue_time] = move(client_queue.front());
+            auto [client_id, client_msg, enqueue_time] = move(client_queue.front());
             client_queue.pop_front();
 
             zmq::message_t new_worker_identity(queued_worker_id.c_str(), queued_worker_id.size());
@@ -152,66 +142,54 @@ void Broker::handle_worker_message() {
             // Forward client request to worker
             backend.send(new_worker_identity, zmq::send_flags::sndmore);
             backend.send(zmq::message_t(), zmq::send_flags::sndmore);
-            for (size_t i = 1; i < message.size(); ++i) {
-                backend.send(message[i], (i == message.size() - 1) ? zmq::send_flags::none : zmq::send_flags::sndmore);
-            }
+            backend.send(client_id, zmq::send_flags::sndmore);
+            backend.send(client_msg, zmq::send_flags::none);
 
-            cout << "Broker: forwarded request from Client to Worker " << queued_worker_id << endl;
+            cout << "Forwarded request from Client to Worker " << queued_worker_id << endl;
         }
-    } else if (message == "HEARTBEAT") {
-        worker_refresh(worker_identity);
-        cout << "Broker: worker " << worker_identity << " sent HEARTBEAT" << endl;
+    } else if (worker_msg_str == "HEARTBEAT") {
+        worker_refresh(worker_id_str);
+        cout << "HEARTBEAT from " << worker_id_str << endl;
     } else {
         // Assume it's a response to a client request
-        cout << "Broker: received response from Worker " << worker_identity << endl;
-        frontend.send(identity, zmq::send_flags::sndmore);
+        cout << "Received response from " << worker_id_str << endl;
         frontend.send(zmq::message_t(), zmq::send_flags::sndmore);
-        frontend.send(content, zmq::send_flags::none);
-        worker_append(worker_identity);
+        frontend.send(worker_msg, zmq::send_flags::none);
+        worker_append(worker_id_str);
     }
 }
 
 void Broker::handle_client_message() {
-    cout << "Broker: Received message from Client" << endl;
-    vector<zmq::message_t> client_msg;
 
-    // Receive all message parts from the Client
-    while (true) {
-        zmq::message_t part;
-        frontend.recv(part, zmq::recv_flags::none);
-        client_msg.emplace_back(move(part));
-        if (!frontend.get(zmq::sockopt::rcvmore)) {
-            break;
-        }
-    }
+    zmq::message_t client_id;
+    zmq::message_t client_msg;
+    frontend.recv(client_id, zmq::recv_flags::none);
+    frontend.recv(client_msg, zmq::recv_flags::none);
 
-    // Extract Client identity and request
-    const string client_identity(static_cast<char*>(client_msg[0].data()), client_msg[0].size());
-    const string request(static_cast<char*>(client_msg[2].data()), client_msg[2].size());
+    const string client_id_str = client_id.to_string();
+    const string client_msg_str = client_msg.to_string();
 
-    cout << "Broker: Client Identity: " << client_identity << endl;
-    cout << "Broker: Client Request: " << request << endl;
+    cout << client_id_str << " request: " << client_msg_str << endl;
 
     if (!workers.empty()) {
         const string worker_id = worker_dequeue();
-        zmq::message_t worker_identity(worker_id.c_str(), worker_id.size());
 
         // Forward Client request to Worker
-        backend.send(worker_identity, zmq::send_flags::sndmore);
-        backend.send(zmq::message_t(), zmq::send_flags::sndmore); // Empty delimiter
-        for (size_t i = 1; i < client_msg.size(); ++i) {
-            backend.send(client_msg[i], (i == client_msg.size() - 1) ? zmq::send_flags::none : zmq::send_flags::sndmore);
-        }
+        backend.send(zmq::message_t(worker_id), zmq::send_flags::sndmore);
+        backend.send(zmq::message_t(), zmq::send_flags::sndmore);
+        backend.send(client_id, zmq::send_flags::sndmore);
+        backend.send(client_msg, zmq::send_flags::none);
 
-        cout << "Broker: Forwarded request from Client " << client_identity << " to Worker " << worker_id << endl;
+        cout << "Forwarded request from " << client_id_str << " to " << worker_id << endl;
     }
+
     else {
 
         if (client_queue.size() < MAX_QUEUE_SIZE) {
-            cerr << "E: no workers available, enqueuing request from Client " << client_identity << endl;
-            client_queue.push_back({move(client_msg), s_clock()});
+            cerr << "E: no workers available, enqueuing request from: " << client_id_str << endl;
+            client_queue.push_back({move(client_id), move(client_msg), s_clock()});
         } else {
-            cerr << "E: Client request queue is full, dropping request from Client " << client_identity << endl;
+            cerr << "E: Client request queue is full, dropping request from: " << client_id_str << endl;
         }
     }
 }
