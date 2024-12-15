@@ -3,59 +3,109 @@
 
 CCounter::CCounter(const CCounter& other) {
     lock_guard lock(other.mtx);
-    state = other.state;
+    increments = other.increments;
+    decrements = other.decrements;
 }
 
 CCounter& CCounter::operator=(const CCounter& other) {
     if (this != &other) {
         lock_guard lock1(mtx);
         lock_guard lock2(other.mtx);
-        state = other.state;
+        increments = other.increments;
+        decrements = other.decrements;
     }
     return *this;
 }
 
 void CCounter::increment(const string& actor) {
     lock_guard lock(mtx);
-    state[actor]++;
+    increments[actor]++;
 }
 
 void CCounter::decrement(const string& actor) {
     lock_guard lock(mtx);
-    state[actor]--;
+    decrements[actor]++;
 }
 
 int CCounter::get_value() const {
     lock_guard lock(mtx);
-    int total = 0;
-    for (const auto&[actor, count] : state) {
-        total += count;
+    int total_increments = 0, total_decrements = 0;
+    for (const auto&[actor, count] : increments) {
+        total_increments += count;
     }
-    return max(0, total);
+
+    for (const auto&[actor, count] : decrements) {
+        total_decrements += count;
+    }
+
+    return max(0, total_increments - total_decrements);
 }
 
 void CCounter::merge(const CCounter& other) {
+
+    cout << "Merging counters\n";
     lock_guard lock(mtx);
     lock_guard lock2(other.mtx);
-    for (const auto& [actor, count] : other.state) {
-        state[actor] += max(state[actor], count);
+    for (const auto& [actor, count] : other.increments) {
+        if (increments.find(actor) != increments.end()) increments[actor] = max(increments[actor], count);
+        else increments[actor] = count;
+    }
+
+    int total_increments = 0, total_decrements = 0;
+
+    for (const auto&[actor, count] : increments) {
+        total_increments += count;
+    }
+
+    for (const auto&[actor, count] : decrements) {
+        total_decrements += count;
+    }
+
+    int current_total_count = total_increments - total_decrements;
+
+    for (const auto& [actor, count] : other.decrements) {
+        int allowed_decrement = min(count, current_total_count);
+        if (decrements.find(actor) != decrements.end()) decrements[actor] = max(decrements[actor], allowed_decrement);
+        else decrements[actor] = allowed_decrement;
+
+        current_total_count -= allowed_decrement;
     }
 }
 
 json CCounter::to_json() const {
     lock_guard lock(mtx);
-    return json {state};
+    json j;
+    j["increments"] = json::object();
+    j["decrements"] = json::object();
+
+    for (const auto&[actor, count] : increments) {
+        cout << "Actor: " << actor << " Count: " << count << "\n";
+        j["increments"][actor] = count;
+    }
+
+    for (const auto&[actor, count] : decrements) {
+        j["decrements"][actor] = count;
+    }
+
+    return j;
 }
 
 CCounter CCounter::from_json(const json& j) {
     CCounter counter;
-    lock_guard lock(counter.mtx);
 
-    for (const auto& [actor, count] : j.items()) {
-        counter.state[actor] = count;
+    if (j.contains("increments") && j.at("increments").is_object()) {
+        for (const auto& [actor, count] : j.at("increments").items()) {
+            counter.increments[actor] = count.get<int>();
+        }
     }
-    return counter;
 
+    if (j.contains("decrements") && j.at("decrements").is_object()) {
+        for (const auto& [actor, count] : j.at("decrements").items()) {
+            counter.decrements[actor] = count.get<int>();
+        }
+    }
+
+    return counter;
 }
 
 
