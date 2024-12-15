@@ -76,37 +76,46 @@ void Worker::run() {
 }
 
 void Worker::handleRequest(const string& client_id, const Message& msg) {
-
     const string list_id = msg.list_id;
     json data = msg.data;
 
     switch (msg.operation) {
-
         case Operation::SEND_ALL_LISTS: {
+            if (data.contains("shoppingLists")) {
+                auto shoppingLists = data.at("shoppingLists"); // Retrieve the array of shopping lists
+                
+                // Iterate through each shopping list
+                for (const auto& list_json : shoppingLists) {
+                    if (!list_json.contains("name")) {
+                        std::cerr << "Invalid shopping list: Missing 'name'.\n";
+                        continue;
+                    }
+                    
+                    // Get the list name
+                    string listName = list_json.at("name");
 
-            if (!msg.data.empty()) {
-
-                map<string, ShoppingList> clientShoppingLists;
-
-                for (const auto& list_json : data) {
-                    auto list = ShoppingList::from_json(list_json);
-                    clientShoppingLists.emplace(list.getName(), list);
-                }
-
-                for (auto& [list_id, list] : clientShoppingLists) {
-                    auto [it, inserted] = inMemoryShoppingLists.emplace(list_id, ShoppingList(list.getName()));
-                    if (!inserted) {
-                        it->second.merge(list);
+                    // Check if the list already exists in inMemoryShoppingLists
+                    auto it = inMemoryShoppingLists.find(listName);
+                    if (it == inMemoryShoppingLists.end()) {
+                        // Add a new shopping list
+                        inMemoryShoppingLists[listName] = ShoppingList::from_json(list_json);
+                        std::cout << "Added new shopping list: " << listName << "\n";
+                    } else {
+                        // Merge the existing list with the new data
+                        it->second.merge(ShoppingList::from_json(list_json));
+                        std::cout << "Merged shopping list: " << listName << "\n";
                     }
                 }
-                break;
+            } else {
+                std::cerr << "Error: Missing 'shoppingLists' in payload.\n";
             }
+            break;
         }
 
         default:
-            throw invalid_argument("Invalid operation");
-
+            throw std::invalid_argument("Invalid operation");
     }
 }
+
 
 
