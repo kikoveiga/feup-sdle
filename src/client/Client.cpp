@@ -189,6 +189,8 @@ void Client::cli() {
         cin >> choice;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
+        cout << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl;
+
         switch (choice) {
             case 1: {
                 client.syncWithServer();
@@ -218,7 +220,6 @@ void Client::cli() {
                     getline(cin, item_name);
 
                     auto& list = client.localShoppingLists[list_name];
-                    // Use client.getUsername() instead of client_id
                     list.add_item(item_name, client.getUsername());
                     cout << "Item added to the list.\n";
                 }
