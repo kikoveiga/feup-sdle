@@ -19,8 +19,7 @@ find_package(bsoncxx REQUIRED)
 
 # Add common sources
 set(COMMON_SOURCES
-    src/common/PNCounter.cpp
-    src/common/CCounter.cpp
+        src/common/CCounter.cpp
     src/common/ShoppingItem.cpp
     src/common/ShoppingList.cpp
     src/common/Message.cpp

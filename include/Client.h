@@ -19,7 +19,7 @@ class Client {
     unordered_map<string, ShoppingList> localShoppingLists;
     string lastSync; 
 
-    string getCurrentTimestamp() const; 
+    static string getCurrentTimestamp() ;
     void loadFromLocalDatabase();
     void saveToLocalDatabase();
 
