@@ -14,6 +14,7 @@ class Database {
 public:
     Database();
     map<string, ShoppingList> loadAllLists() const;
+    void saveAllLists(const map<string, ShoppingList>& lists) const;
 };
 
 #endif //DATABASE_H
