@@ -248,13 +248,11 @@ void Client::cli() {
                 break;
             }
             case 5: {
-                std::cout << "\nLocal Shopping Lists:\n";
-                for (const auto& [lname, list] : client.localShoppingLists) {
-                    std::cout << "- " << lname << "\n";
-                    for (const auto& itemPair : list.getItems()) {
-                        const auto& item = itemPair.second;
-                        std::cout << "  * " << item.get_name()
-                                  << " (Quantity: " << item.get_quantity() << ")\n";
+                cout << "\nLocal Shopping Lists:\n";
+                for (const auto& [list_name, list] : client.localShoppingLists) {
+                    cout << "- " << list_name << "\n";
+                    for (const auto&[fst, snd] : list.getItems()) {
+                        cout << "  * " << snd.get_name() << " (Quantity: " << snd.get_quantity() << ")\n";
                     }
                 }
                 break;
