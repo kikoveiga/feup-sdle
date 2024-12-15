@@ -120,6 +120,7 @@ void Broker::run() {
 void Broker::handle_worker_message() {
     zmq::message_t worker_id;
     zmq::message_t worker_msg;
+    zmq::message_t worker_processed;
 
     backend.recv(worker_id, zmq::recv_flags::none);
     backend.recv(worker_msg, zmq::recv_flags::none);
@@ -151,10 +152,12 @@ void Broker::handle_worker_message() {
         worker_refresh(worker_id_str);
         cout << "HEARTBEAT from " << worker_id_str << endl;
     } else {
+        backend.recv(worker_processed, zmq::recv_flags::none);
+        cout << worker_processed.to_string();
         // Assume it's a response to a client request
-        cout << "Received response from " << worker_id_str << endl;
-        frontend.send(zmq::message_t(), zmq::send_flags::sndmore);
-        frontend.send(worker_msg, zmq::send_flags::none);
+        cout << "Forwarding response from " << worker_id_str << " to " << worker_msg_str << endl;
+        frontend.send(zmq::message_t(worker_msg_str), zmq::send_flags::sndmore);
+        frontend.send(zmq::buffer(worker_processed.to_string()), zmq::send_flags::none);
         worker_append(worker_id_str);
     }
 }
@@ -168,8 +171,6 @@ void Broker::handle_client_message() {
 
     const string client_id_str = client_id.to_string();
     const string client_msg_str = client_msg.to_string();
-
-    cout << client_id_str << " request: " << client_msg_str << endl;
 
     if (!workers.empty()) {
         const string worker_id = worker_dequeue();

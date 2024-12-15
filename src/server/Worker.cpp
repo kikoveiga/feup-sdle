@@ -44,6 +44,9 @@ void Worker::run() {
             worker.recv(empty, zmq::recv_flags::none);
             worker.recv(first_msg, zmq::recv_flags::none);
 
+            cout << empty.to_string() << endl;
+            cout << first_msg.to_string() << endl;
+
             string first_msg_str = first_msg.to_string();
 
             if (first_msg_str == "HEARTBEAT") {
@@ -51,6 +54,7 @@ void Worker::run() {
                 worker.send(hb_reply, zmq::send_flags::none);
                 cout << "Worker " << worker_id << ": HEARTBEAT received and replied" << endl;
             } else {
+
                 zmq::message_t client_msg;
                 worker.recv(client_msg, zmq::recv_flags::none);
 
@@ -59,9 +63,15 @@ void Worker::run() {
                 try {
                     handleRequest(unique_id, Message::from_string(client_msg.to_string()));
 
-                    string response = "OK";
-                    worker.send(zmq::buffer(response), zmq::send_flags::none);
-                    cout << "Worker " << worker_id << " sent response: " << response << endl;
+                    json data;
+                    data["shoppingLists"] = json::array();
+
+                    for (const auto& [listName, list] : inMemoryShoppingLists) {
+                        data["shoppingLists"].push_back(list.to_json());
+                    }
+
+                    worker.send(zmq::buffer(first_msg_str), zmq::send_flags::sndmore);
+                    worker.send(zmq::buffer(to_string(data)), zmq::send_flags::none);
                 } catch (const exception& e) {
                     cerr << "Error processing message: " << e.what() << endl;
                     string response = "ERROR";

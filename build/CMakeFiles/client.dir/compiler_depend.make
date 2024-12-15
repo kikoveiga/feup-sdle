@@ -1636,7 +1636,6 @@ client: /lib/i386-linux-gnu/libbsd.so.0 \
   CMakeFiles/client.dir/src/client/Client.cpp.o \
   CMakeFiles/client.dir/src/common/CCounter.cpp.o \
   CMakeFiles/client.dir/src/common/Message.cpp.o \
-  CMakeFiles/client.dir/src/common/PNCounter.cpp.o \
   CMakeFiles/client.dir/src/common/ShoppingItem.cpp.o \
   CMakeFiles/client.dir/src/common/ShoppingList.cpp.o \
   external/zmqpp/libzmqpp.so
@@ -1645,8 +1644,6 @@ client: /lib/i386-linux-gnu/libbsd.so.0 \
 external/zmqpp/libzmqpp.so:
 
 CMakeFiles/client.dir/src/common/ShoppingList.cpp.o:
-
-CMakeFiles/client.dir/src/common/PNCounter.cpp.o:
 
 CMakeFiles/client.dir/src/common/Message.cpp.o:
 
