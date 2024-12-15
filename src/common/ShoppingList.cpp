@@ -38,10 +38,6 @@ void ShoppingList::mark_item_acquired(const string& name, const string& actor) {
     lock_guard lock(mtx);
     if (items.find(name) != items.end()) {
         items[name].decrement(actor);
-
-        if (items[name].get_quantity() == 0) {
-            items.erase(name);
-        }
     }
 }
 
