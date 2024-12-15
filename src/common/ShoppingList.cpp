@@ -50,6 +50,11 @@ string ShoppingList::getName() const {
     return name;
 }
 
+map<string, ShoppingItem> ShoppingList::getItems() const {
+    lock_guard lock(mtx);
+    return items;
+}
+
 void ShoppingList::merge(const ShoppingList& other) {
     lock_guard lock(mtx);
     lock_guard lock2(other.mtx);

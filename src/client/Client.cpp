@@ -80,7 +80,7 @@ void Client::loadFromLocalDatabase() {
         localShoppingLists[list.getName()] = list;
     }
 
-    cout << "Loaded " << localShoppingLists.size() << " lists from local database." << endl;
+    cout << "Loaded " << localShoppingLists.size() << " list" << (localShoppingLists.size() > 1 ? "s" : "") << " from local database." << endl;
 }
 
 void Client::saveToLocalDatabase() {
@@ -110,14 +110,110 @@ Client::~Client() {
     saveToLocalDatabase();
 }
 
-int main() {
+void Client::cli() {
 
     Client client;
 
-    const ShoppingList list1("Groceries");
-    client.addShoppingList(list1.getName(), list1);
+    while (true) {
+        cout << "\n--- Shopping List Client CLI ---\n";
+        cout << "1. Synchronize with Server\n";
+        cout << "2. Add Shopping List\n";
+        cout << "3. Add Item to List\n";
+        cout << "4. Mark Item as Acquired\n";
+        cout << "5. Display Local Shopping Lists\n";
+        cout << "6. Exit\n";
+        cout << "Choose an option: ";
 
-    while (true) {}
+        int choice;
+        cin >> choice;
+        cin.ignore(); // To clear the newline character from the input buffer
+        cout << endl << endl << endl << endl << endl;
+
+        switch (choice) {
+            case 1: {
+                client.syncWithServer();
+                cout << "Synchronized with server.\n";
+                break;
+            }
+            case 2: {
+                cout << "Enter the name of the shopping list: ";
+                string list_name;
+                getline(cin, list_name);
+
+                if (client.localShoppingLists.count(list_name)) {
+                    cout << "A shopping list with this name already exists.\n";
+                } else {
+                    ShoppingList new_list(list_name);
+                    client.addShoppingList(list_name, new_list);
+                    client.saveToLocalDatabase();
+                    cout << "Shopping list added.\n";
+                }
+                break;
+            }
+            case 3: {
+                cout << "Enter the name of the shopping list: ";
+                string list_name;
+                getline(cin, list_name);
+
+                if (!client.localShoppingLists.count(list_name)) {
+                    cout << "No shopping list found with this name.\n";
+                } else {
+                    cout << "Enter the name of the item: ";
+                    string item_name;
+                    getline(cin, item_name);
+
+                    auto& list = client.localShoppingLists[list_name];
+                    list.add_item(item_name, client.get_client_id());
+                    client.saveToLocalDatabase();
+                    cout << "Item added to the list.\n";
+                }
+                break;
+            }
+            case 4: {
+                cout << "Enter the name of the shopping list: ";
+                string list_name;
+                getline(cin, list_name);
+
+                if (!client.localShoppingLists.count(list_name)) {
+                    cout << "No shopping list found with this name.\n";
+                } else {
+                    cout << "Enter the name of the item to mark as acquired: ";
+                    string item_name;
+                    getline(cin, item_name);
+
+                    auto& list = client.localShoppingLists[list_name];
+                    list.mark_item_acquired(item_name, client.get_client_id());
+                    client.saveToLocalDatabase();
+                    cout << "Item marked as acquired.\n";
+                }
+                break;
+            }
+            case 5: {
+                cout << "\nLocal Shopping Lists:\n";
+                for (const auto& [list_name, list] : client.localShoppingLists) {
+                    cout << "- " << list_name << "\n";
+                    for (const auto& item : list.getItems()) {
+                        cout << "  * " << item.second.get_name() << " (Quantity: " << item.second.get_quantity() << ")\n";
+                    }
+                }
+                break;
+            }
+            case 6: {
+                cout << "Exiting...\n";
+                return; // Exit the function and program
+            }
+            default: {
+                cout << "Invalid option. Please try again.\n";
+                break;
+            }
+        }
+    }
+
+}
+
+int main() {
+
+    Client::cli();
 
     return 0;
 }

@@ -33,6 +33,13 @@ json ShoppingItem::to_json() const {
 
 ShoppingItem ShoppingItem::from_json(const json& j) {
     ShoppingItem item(j.at("name").get<string>());
-    item.counter = CCounter::from_json(j.at("counter"));
+
+    if (j.contains("counter") && j.at("counter").is_array()) {
+        for (const auto& counter_entry : j.at("counter")) {
+            for (const auto& [actor, count] : counter_entry.items()) {
+                item.counter.increment(actor);
+            }
+        }
+    }
     return item;
 }
