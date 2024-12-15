@@ -51,9 +51,24 @@ void CCounter::merge(const CCounter& other) {
         else increments[actor] = count;
     }
 
+    int total_increments = 0, total_decrements = 0;
+
+    for (const auto&[actor, count] : increments) {
+        total_increments += count;
+    }
+
+    for (const auto&[actor, count] : decrements) {
+        total_decrements += count;
+    }
+
+    int current_total_count = total_increments - total_decrements;
+
     for (const auto& [actor, count] : other.decrements) {
-        if (decrements.find(actor) != decrements.end()) decrements[actor] = max(decrements[actor], count);
-        else decrements[actor] = count;
+        int allowed_decrement = min(count, current_total_count);
+        if (decrements.find(actor) != decrements.end()) decrements[actor] = max(decrements[actor], allowed_decrement);
+        else decrements[actor] = allowed_decrement;
+
+        current_total_count -= allowed_decrement;
     }
 }
 
