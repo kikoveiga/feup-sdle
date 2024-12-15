@@ -205,8 +205,8 @@ void Client::cli() {
                 cout << "\nLocal Shopping Lists:\n";
                 for (const auto& [list_name, list] : client.localShoppingLists) {
                     cout << "- " << list_name << "\n";
-                    for (const auto& item : list.getItems()) {
-                        cout << "  * " << item.second.get_name() << " (Quantity: " << item.second.get_quantity() << ")\n";
+                    for (const auto&[fst, snd] : list.getItems()) {
+                        cout << "  * " << snd.get_name() << " (Quantity: " << snd.get_quantity() << ")\n";
                     }
                 }
                 break;
