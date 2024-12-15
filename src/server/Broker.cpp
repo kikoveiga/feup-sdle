@@ -172,6 +172,8 @@ void Broker::handle_client_message() {
     const string client_id_str = client_id.to_string();
     const string client_msg_str = client_msg.to_string();
 
+    cout << client_msg_str;
+
     if (!workers.empty()) {
         const string worker_id = worker_dequeue();
 

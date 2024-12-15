@@ -11,7 +11,8 @@ using nlohmann::json;
 
 class CCounter {
 
-    map<string, int> state; // Map of actor -> count
+    map<string, int> increments;
+    map<string, int> decrements;
     mutable mutex mtx;
 
 public:

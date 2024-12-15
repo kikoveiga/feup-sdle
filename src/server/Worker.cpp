@@ -106,15 +106,17 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
                     // Get the list name
                     string listName = list_json.at("name");
 
+                    cout << "Received shopping list: " << list_json << "\n";
+
                     // Check if the list already exists in inMemoryShoppingLists
                     auto it = inMemoryShoppingLists.find(listName);
                     if (it == inMemoryShoppingLists.end()) {
                         // Add a new shopping list
                         inMemoryShoppingLists[listName] = ShoppingList::from_json(list_json);
-                        cout << "Added new shopping list: " << listName << "\n";
                     } else {
                         // Merge the existing list with the new data
                         it->second.merge(ShoppingList::from_json(list_json));
+                        cout << it->second.to_json();
                         cout << "Merged shopping list: " << listName << "\n";
                     }
                 }
