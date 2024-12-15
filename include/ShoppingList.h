@@ -26,6 +26,7 @@ public:
     void mark_item_acquired(const string& name, const string& actor);
 
     [[nodiscard]] string getName() const;
+    map<string, ShoppingItem> getItems() const;
     
     void merge(const ShoppingList& other);
     

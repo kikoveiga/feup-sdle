@@ -34,6 +34,7 @@ public:
     string get_client_id() const;
     void addShoppingList(const string& name, const ShoppingList& list);
     void send_request(Operation operation, const string &list_id, const json &data);
+    static void cli();
 };
 
 #endif //CLIENT_H
