@@ -9,7 +9,7 @@
 
 
 #define HEARTBEAT_LIVENESS 3
-#define HEARTBEAT_INTERVAL 11000
+#define HEARTBEAT_INTERVAL 2000
 
 Worker::Worker(string backend_url, const int worker_id, Database& db) : backend_url(move(backend_url)), worker_id(worker_id), centralDatabase(db) {
     lock_guard lock(g_mutex);
@@ -89,6 +89,8 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
     const string list_id = msg.list_id;
     json data = msg.data;
 
+    inMemoryShoppingLists = centralDatabase.loadAllLists();
+
     switch (msg.operation) {
         case Operation::SEND_ALL_LISTS: {
             if (data.contains("shoppingLists")) {
@@ -97,7 +99,7 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
                 // Iterate through each shopping list
                 for (const auto& list_json : shoppingLists) {
                     if (!list_json.contains("name")) {
-                        std::cerr << "Invalid shopping list: Missing 'name'.\n";
+                        cerr << "Invalid shopping list: Missing 'name'.\n";
                         continue;
                     }
                     
@@ -109,22 +111,24 @@ void Worker::handleRequest(const string& client_id, const Message& msg) {
                     if (it == inMemoryShoppingLists.end()) {
                         // Add a new shopping list
                         inMemoryShoppingLists[listName] = ShoppingList::from_json(list_json);
-                        std::cout << "Added new shopping list: " << listName << "\n";
+                        cout << "Added new shopping list: " << listName << "\n";
                     } else {
                         // Merge the existing list with the new data
                         it->second.merge(ShoppingList::from_json(list_json));
-                        std::cout << "Merged shopping list: " << listName << "\n";
+                        cout << "Merged shopping list: " << listName << "\n";
                     }
                 }
             } else {
-                std::cerr << "Error: Missing 'shoppingLists' in payload.\n";
+                cerr << "Error: Missing 'shoppingLists' in payload.\n";
             }
             break;
         }
 
         default:
-            throw std::invalid_argument("Invalid operation");
+            throw invalid_argument("Invalid operation");
     }
+
+    centralDatabase.saveAllLists(inMemoryShoppingLists);
 }
 
 

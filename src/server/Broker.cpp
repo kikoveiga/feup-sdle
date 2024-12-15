@@ -4,7 +4,7 @@
 #include "zhelpers.hpp"
 
 #define HEARTBEAT_LIVENESS 3
-#define HEARTBEAT_INTERVAL 10000
+#define HEARTBEAT_INTERVAL 1000
 
 Broker::Broker() : context(1), frontend(context, ZMQ_ROUTER), backend(context, ZMQ_ROUTER) {
     frontend.bind("tcp://*:5555");
