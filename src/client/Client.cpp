@@ -7,13 +7,15 @@
 
 Client::Client() : context(1), dealer_socket(context, zmq::socket_type::dealer) {
     cout << "Client initialized. Awaiting user login...\n";
-    dealer_socket.connect("tcp://localhost:5555");
 }
 
-void Client::initializeUser(const string& username) {
+void Client::loginUser(const string& username) {
     this->username = username;
+    dealer_socket.set(zmq::sockopt::routing_id, username);
+    dealer_socket.set(zmq::sockopt::sndtimeo, 5000);
+    dealer_socket.set(zmq::sockopt::rcvtimeo, 5000);
+    dealer_socket.connect("tcp://localhost:5555");
 
-    const string file_path = "../clientsData/" + username + ".json";
     loadFromLocalDatabase();
 }
 
@@ -34,14 +36,13 @@ void Client::addShoppingList(const string& name, const ShoppingList& list) {
 void Client::syncWithServer() {
     // Prepare data to send (all local lists)
     json data;
-    data["username"] = username;
     data["shoppingLists"] = json::array();
     for (const auto& [listName, list] : localShoppingLists) {
         data["shoppingLists"].push_back(list.to_json());
     }
 
     // Send request to the server
-    send_request(Operation::SEND_ALL_LISTS, "", data);
+    send_request(Operation::SEND_ALL_LISTS, data);
 
     // Receive and process the server's reply
     zmq::message_t reply;
@@ -50,12 +51,20 @@ void Client::syncWithServer() {
         return;
     }
 
-    auto response = json::parse(reply.to_string());
-    if (response.contains("lists")) {
-        for (const auto& list_json : response["lists"]) {
-            auto list = ShoppingList::from_json(list_json);
-            localShoppingLists[list.getName()] = list;
+    try {
+        auto response = json::parse(reply.to_string());
+        cout << "Received response from server: " << response.dump(4) << "\n";
+
+        if (response.contains("shoppingLists")) {
+            localShoppingLists.clear();
+            for (const auto& list_json : response["shoppingLists"]) {
+                auto list = ShoppingList::from_json(list_json);
+                localShoppingLists[list.getName()] = list;
+            }
         }
+    } catch (const exception& e) {
+        cerr << "Error parsing server response: " << e.what() << "\n";
+        return;
     }
 
     lastSync = getCurrentTimestamp();
@@ -63,19 +72,23 @@ void Client::syncWithServer() {
     cout << "Synchronized with server at: " << lastSync << "\n";
 }
 
-void Client::send_request(Operation operation, const string &list_id, const json &data) {
-    Message msg(operation, list_id, data);
+void Client::send_request(const Operation& operation, const json& data) {
+    const Message msg(operation, "", data);
     string request_str = msg.to_string();
     cout << "Sending request: " << request_str << "\n";
-    dealer_socket.send(zmq::buffer(request_str), zmq::send_flags::none);
+    try {
+        dealer_socket.send(zmq::buffer(request_str), zmq::send_flags::none);
+        cout << "Request sent successfully.\n";
+    } catch (const exception& e) {
+        cerr << "Error sending request: " << e.what() << "\n";
+    }
 }
-
 
 void Client::loadFromLocalDatabase() {
     const string file_path = "../clientsData/" + username + ".json";
     ifstream infile(file_path);
     if (!infile.is_open()) {
-        cerr << "Error: No local database found for user: " << username << "\n";
+        cerr << "No local database found for user: " << username << "\n";
         return;
     }
 
@@ -113,7 +126,6 @@ void Client::saveToLocalDatabase() {
     }
 
     json json_data;
-    json_data["username"] = username;
     json_data["lastSync"] = lastSync.empty() ? "Never" : lastSync;
     json_data["shoppingLists"] = json::array();
 
@@ -141,7 +153,7 @@ string Client::getCurrentTimestamp() {
     auto now_c = system_clock::to_time_t(now);
 
     ostringstream oss;
-    oss << put_time(localtime(&now_c), "%Y-%m-%dT%H:%M:%S");
+    oss << put_time(localtime(&now_c), "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
 
@@ -161,7 +173,7 @@ void Client::cli() {
     string user;
     cin >> user;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    client.initializeUser(user);
+    client.loginUser(user);
 
     while (true) {
         cout << "\n--- Shopping List Client CLI ---\n";

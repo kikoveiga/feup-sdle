@@ -3388,7 +3388,6 @@ main_worker: /lib/i386-linux-gnu/libbsd.so.0 \
   /usr/local/lib/libmongocxx.so \
   CMakeFiles/main_worker.dir/src/common/CCounter.cpp.o \
   CMakeFiles/main_worker.dir/src/common/Message.cpp.o \
-  CMakeFiles/main_worker.dir/src/common/PNCounter.cpp.o \
   CMakeFiles/main_worker.dir/src/common/ShoppingItem.cpp.o \
   CMakeFiles/main_worker.dir/src/common/ShoppingList.cpp.o \
   CMakeFiles/main_worker.dir/src/server/Broker.cpp.o \
@@ -3399,8 +3398,6 @@ main_worker: /lib/i386-linux-gnu/libbsd.so.0 \
 
 
 external/zmqpp/libzmqpp.so:
-
-CMakeFiles/main_worker.dir/src/common/PNCounter.cpp.o:
 
 CMakeFiles/main_worker.dir/src/common/CCounter.cpp.o:
 
