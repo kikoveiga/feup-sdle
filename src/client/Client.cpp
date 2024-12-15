@@ -189,7 +189,7 @@ void Client::cli() {
         cin >> choice;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        cout << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl;
+        cout << endl << endl << endl << endl << endl;
 
         switch (choice) {
             case 1: {
@@ -197,6 +197,24 @@ void Client::cli() {
                 break;
             }
             case 2: {
+                cout << "\n================= Local Shopping Lists =================\n";
+                for (const auto& [list_name, list] : client.localShoppingLists) {
+                    string border(list_name.size() + 24, '=');
+                    cout << border << "\n";
+                    cout << "|           " << list_name << "           |\n";
+                    cout << border << "\n";
+
+                    if (list.getItems().empty()) {
+                        cout << "  (No items in this list)\n";
+                    } else {
+                        for (const auto& [item_name, item] : list.getItems()) {
+                            cout << "  * " << item.get_name() << " (Quantity: " << item.get_quantity() << ")\n";
+                        }
+                    }
+
+                    cout << string(border.size(), '-') << "\n";
+                }
+                cout << "=========================================================\n";
                 cout << "Enter the name of the shopping list: ";
                 string list_name;
                 getline(cin, list_name);
@@ -208,6 +226,24 @@ void Client::cli() {
                 break;
             }
             case 3: {
+                cout << "\n================= Local Shopping Lists =================\n";
+                for (const auto& [list_name, list] : client.localShoppingLists) {
+                    string border(list_name.size() + 24, '=');
+                    cout << border << "\n";
+                    cout << "|           " << list_name << "           |\n";
+                    cout << border << "\n";
+
+                    if (list.getItems().empty()) {
+                        cout << "  (No items in this list)\n";
+                    } else {
+                        for (const auto& [item_name, item] : list.getItems()) {
+                            cout << "  * " << item.get_name() << " (Quantity: " << item.get_quantity() << ")\n";
+                        }
+                    }
+
+                    cout << string(border.size(), '-') << "\n";
+                }
+                cout << "=========================================================\n";
                 cout << "Enter the name of the shopping list: ";
                 string list_name;
                 getline(cin, list_name);
@@ -237,6 +273,11 @@ void Client::cli() {
                     string item_name;
                     getline(cin, item_name);
 
+                    if(!client.localShoppingLists[list_name].getItems().count(item_name)) {
+                        cout << "No item found with this name.\n";
+                        break;
+                    }
+
                     auto& list = client.localShoppingLists[list_name];
                     // Use client.getUsername() instead of client_id
                     list.mark_item_acquired(item_name, client.getUsername());
@@ -246,13 +287,24 @@ void Client::cli() {
                 break;
             }
             case 5: {
-                cout << "\nLocal Shopping Lists:\n";
+                cout << "\n================= Local Shopping Lists =================\n";
                 for (const auto& [list_name, list] : client.localShoppingLists) {
-                    cout << "- " << list_name << "\n";
-                    for (const auto&[fst, snd] : list.getItems()) {
-                        cout << "  * " << snd.get_name() << " (Quantity: " << snd.get_quantity() << ")\n";
+                    string border(list_name.size() + 24, '=');
+                    cout << border << "\n";
+                    cout << "|           " << list_name << "           |\n";
+                    cout << border << "\n";
+
+                    if (list.getItems().empty()) {
+                        cout << "  (No items in this list)\n";
+                    } else {
+                        for (const auto& [item_name, item] : list.getItems()) {
+                            cout << "  * " << item.get_name() << " (Quantity: " << item.get_quantity() << ")\n";
+                        }
                     }
+
+                    cout << string(border.size(), '-') << "\n";
                 }
+                cout << "=========================================================\n";
                 break;
             }
             case 6: {
@@ -264,6 +316,28 @@ void Client::cli() {
         }
     }
 }
+
+void displayShoppingLists(const unordered_map<string, ShoppingList>& shoppingLists) {
+    cout << "\n================= Local Shopping Lists =================\n";
+    for (const auto& [list_name, list] : shoppingLists) {
+        string border(list_name.size() + 24, '=');
+        cout << border << "\n";
+        cout << "|           " << list_name << "           |\n";
+        cout << border << "\n";
+
+        if (list.getItems().empty()) {
+            cout << "  (No items in this list)\n";
+        } else {
+            for (const auto& [item_name, item] : list.getItems()) {
+                cout << "  * " << item.get_name() << " (Quantity: " << item.get_quantity() << ")\n";
+            }
+        }
+
+        cout << string(border.size(), '-') << "\n";
+    }
+    cout << "=========================================================\n";
+}
+
 
 
 int main() {
