@@ -84,7 +84,19 @@ void Client::loadFromLocalDatabase() {
 }
 
 void Client::saveToLocalDatabase() {
+    using namespace std::filesystem; // Use the filesystem namespace
 
+    // Ensure the directory exists
+    const std::string directory = "../clientsData/";
+    if (!exists(directory)) {
+        if (!create_directory(directory)) {
+            cerr << "Error creating directory: " << directory << endl;
+            return;
+        }
+        cout << "Created directory: " << directory << endl;
+    }
+
+    // Save the lists to the JSON file
     cout << "Saving lists to local database..." << endl;
     json json_data;
     json_data["shoppingLists"] = json::array();
@@ -93,7 +105,7 @@ void Client::saveToLocalDatabase() {
         json_data["shoppingLists"].push_back(list.to_json());
     }
 
-    ofstream outfile("../clientsData/" + client_id + ".json");
+    ofstream outfile(directory + client_id + ".json");
     if (!outfile.is_open()) {
         cerr << "Error opening file" << endl;
         return;
@@ -104,6 +116,7 @@ void Client::saveToLocalDatabase() {
 
     cout << "Saved " << localShoppingLists.size() << " lists to local database." << endl;
 }
+
 
 Client::~Client() {
     cout << "Client shutting down..." << endl;
@@ -116,8 +129,6 @@ int main() {
 
     const ShoppingList list1("Groceries");
     client.addShoppingList(list1.getName(), list1);
-
-    while (true) {}
 
     return 0;
 }
