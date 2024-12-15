@@ -1580,7 +1580,6 @@ main: /lib/x86_64-linux-gnu/libc.so.6 \
   /usr/local/lib/libmongocxx.so \
   CMakeFiles/main.dir/src/common/CCounter.cpp.o \
   CMakeFiles/main.dir/src/common/Message.cpp.o \
-  CMakeFiles/main.dir/src/common/PNCounter.cpp.o \
   CMakeFiles/main.dir/src/common/ShoppingItem.cpp.o \
   CMakeFiles/main.dir/src/common/ShoppingList.cpp.o \
   CMakeFiles/main.dir/src/main.cpp.o \
@@ -1668,8 +1667,6 @@ CMakeFiles/main.dir/src/common/CCounter.cpp.o:
 /usr/lib/x86_64-linux-gnu/crtn.o:
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
-
-CMakeFiles/main.dir/src/common/PNCounter.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
 

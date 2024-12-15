@@ -31,13 +31,13 @@ public:
     Client();
     ~Client();
 
-    void initializeUser(const string& username); 
+    void loginUser(const string& username);
     string getLastSync() const;
     string getUsername() const;
     void syncWithServer();
     
     void addShoppingList(const string& name, const ShoppingList& list);
-    void send_request(Operation operation, const string &list_id, const json &data);
+    void send_request(const Operation& operation, const json& data);
     static void cli();
 };
 
