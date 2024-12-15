@@ -5,7 +5,7 @@
 
 int main() {
     ShoppingList list1("list1");
-    ShoppingList list2("list2");
+    ShoppingList list2("list1");
 
     // Adding items by two different clients (actors)
 
