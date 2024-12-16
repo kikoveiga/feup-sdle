@@ -13,7 +13,7 @@ void Client::loginUser(const string& username) {
     this->username = username;
     dealer_socket.set(zmq::sockopt::routing_id, username);
     dealer_socket.set(zmq::sockopt::sndtimeo, 5000);
-    dealer_socket.set(zmq::sockopt::rcvtimeo, 5000);
+    dealer_socket.set(zmq::sockopt::rcvtimeo, 30000);
     dealer_socket.connect("tcp://localhost:5555");
 
     loadFromLocalDatabase();
