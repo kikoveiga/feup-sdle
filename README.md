@@ -8,7 +8,7 @@ Group members:
 2. João Padrão (up202108766@up.pt)
 3. José Francisco Veiga (up202108753@up.pt)
 
-## [Video demo](https://www.youtube.com/watch?v=sn-efuW2-5E)
+### [Video demo](https://www.youtube.com/watch?v=sn-efuW2-5E)
 
 ## Introduction
 
