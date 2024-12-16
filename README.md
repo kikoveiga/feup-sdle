@@ -8,6 +8,8 @@ Group members:
 2. João Padrão (up202108766@up.pt)
 3. José Francisco Veiga (up202108753@up.pt)
 
+## [Video demo](https://www.youtube.com/watch?v=sn-efuW2-5E)
+
 ## Introduction
 
 - This project, entitled **Shopping Lists on the Cloud**, centres on the implementation of a distributed system that uses conflict-free replicated data types ([CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type)) to guarantee consistency between replicas in a shopping list management application. The application allows users to create, share and manage shopping lists collaboratively, even in offline-first scenarios.
